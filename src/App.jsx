@@ -3,11 +3,13 @@ import { ResumeLibrary, exampleResumes } from "./ResumeLibrary.jsx";
 import { ResumePreviewPage } from "./ResumePreviewPage.jsx";
 import { ResumeEditor, ResumeDocument } from "./ResumeEditor.jsx";
 import { Interview } from "./Interview.jsx";
+import { AboutMe } from "./AboutMe.jsx";
 import { AccountSettings, AuthPage } from "./Account.jsx";
 import {
   ConfigProvider,
   App as AntApp,
   Button,
+  Dropdown,
   Avatar,
   Tag,
   Tabs,
@@ -39,6 +41,7 @@ import {
   DownloadOutlined,
   SettingOutlined,
   ArrowLeftOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 
 const roles = {
@@ -238,6 +241,7 @@ function Experience() {
   const [editing, setEditing] = useState(false);
   const [resumeItems, setResumeItems] = useState(exampleResumes);
   const [selectedResume, setSelectedResume] = useState(exampleResumes[0]);
+  const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
   const currentResume =
     resumeItems.find((item) => item.id === selectedResume.id) || selectedResume;
   function editResume(doc) {
@@ -336,33 +340,11 @@ function Experience() {
     if (key === "preferences") return <Preferences notify={notify} />;
     if (key === "profile")
       return (
-        <div className="panel-scroll">
-          <div className="form-card">
-            <h3>
-              <span />
-              关于我
-            </h3>
-            <Form
-              layout="vertical"
-              initialValues={{
-                name: "林同学",
-                intro: "2026 届计算机专业毕业生，希望从事前端开发工作。",
-              }}
-              onFinish={() => notify("个人信息已在本次演示中保存，刷新后重置")}
-            >
-              <Form.Item label="称呼" name="name">
-                <Input />
-              </Form.Item>
-              <Form.Item label="个人背景" name="intro">
-                <Input.TextArea rows={6} />
-              </Form.Item>
-              <Button type="primary" htmlType="submit">
-                保存信息
-              </Button>
-            </Form>
-            <p className="demo-note">本地演示 · 刷新后重置</p>
-          </div>
-        </div>
+        <AboutMe
+          doc={currentResume}
+          onChange={updateResume}
+          notify={notify}
+        />
       );
     if (key === "jobs")
       return (
@@ -574,7 +556,7 @@ function Experience() {
         </>
       )}
       <main className="main-shell">
-        {page !== "agent" && topbar}
+        {page !== "agent" && page !== "interview" && topbar}
         <div className="split-area">
           {page === "resume-preview" ? (
             <ResumePreviewPage
@@ -607,7 +589,17 @@ function Experience() {
               onAuth={setAuthMode}
             />
           ) : page === "interview" ? (
-            <Interview resume={<Resume doc={currentResume} />} />
+            <Interview
+              resume={<Resume doc={currentResume} />}
+              onToggleSidebar={() => setSidebar((p) => !p)}
+              sidebarOpen={sidebar}
+              resumes={resumeItems}
+              selectedResumeId={currentResume.id}
+              onResumeChange={(id) => {
+                const selected = resumeItems.find((item) => item.id === id);
+                if (selected) setSelectedResume(selected);
+              }}
+            />
           ) : (
             <Splitter>
               <Splitter.Panel
@@ -639,14 +631,47 @@ function Experience() {
                           "新会话"}
                       </span>
                     </div>
-                    <Button
-                      size="small"
-                      shape="round"
-                      icon={<FileTextOutlined />}
-                      onClick={() => open("resume")}
+                    <Dropdown
+                      trigger={["click"]}
+                      placement="bottomRight"
+                      open={resumeMenuOpen}
+                      onOpenChange={setResumeMenuOpen}
+                      popupRender={() => (
+                        <div className="agent-resume-picker">
+                          <strong>我的简历</strong>
+                          <div className="agent-resume-picker-list">
+                            {resumeItems.map((item) => (
+                              <button
+                                className={`agent-resume-picker-item ${item.id === currentResume.id ? "selected" : ""}`}
+                                key={item.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedResume(item);
+                                  setResumeMenuOpen(false);
+                                  open("resume");
+                                }}
+                              >
+                                <FileTextOutlined />
+                                <span>
+                                  <span className="agent-resume-picker-title">{item.title}</span>
+                                  <small>{item.date} · 最近更新</small>
+                                </span>
+                                {item.id === currentResume.id && <CheckOutlined />}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     >
-                      我的简历
-                    </Button>
+                      <Button
+                        size="small"
+                        shape="round"
+                        icon={<FileTextOutlined />}
+                        aria-label="选择简历"
+                      >
+                        我的简历
+                      </Button>
+                    </Dropdown>
                   </div>
                   <div
                     className="agent-editor-pane"

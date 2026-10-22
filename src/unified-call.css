@@ -1,54 +1,8 @@
-.unified-header {
-  border-bottom: 0;
-  height: 77px;
-  min-height: 77px;
-  padding: 17px 23px 12px;
-}
-.unified-header .unified-person {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.unified-person > div {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.unified-person strong {
-  font-size: 13px;
-  color: #5b6172;
-}
-.unified-header .unified-person strong span {
-  font-size: 10px;
-  color: #a1a6b3;
-  margin-left: 8px;
-  font-weight: 400;
-}
-.unified-person small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #8b91a1;
-  font-size: 10px;
-}
 .call-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: #8b91a1;
-}
-.unified-header .unified-time {
-  font-size: 10px;
-  color: #a1a6b3;
-  margin-left: 6px;
-  font-variant-numeric: tabular-nums;
-}
-.unified-header > .ant-tag {
-  font-size: 9px;
-  border: 0;
-  background: #ffffff;
-  color: #a1a6b3;
-  margin: 0;
 }
 .unified-context {
   margin: 0 23px 0;
@@ -183,9 +137,6 @@
   }
 }
 @media (max-width: 1100px) {
-  .unified-header {
-    padding-inline: 18px;
-  }
   .unified-context {
     margin-inline: 18px;
   }

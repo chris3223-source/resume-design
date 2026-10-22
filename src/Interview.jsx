@@ -3,11 +3,10 @@ import {
   Avatar,
   Button,
   Input,
-  Radio,
   Select,
   Tag,
   Progress,
-  Switch,
+  Modal,
 } from "antd";
 import {
   PhoneOutlined,
@@ -20,6 +19,13 @@ import {
   MessageOutlined,
   UserOutlined,
   ReloadOutlined,
+  BulbOutlined,
+  ProjectOutlined,
+  CodeOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  EditOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { Bubble, Sender } from "@ant-design/x";
 import "./interview.css";
@@ -35,6 +41,32 @@ const examples = [
   "我会在每个请求里带上简历 ID 和版本号，收到修改后先检查目标和版本。如果用户已切换简历，就更新对应数据，不覆盖当前正在看的简历。",
   "我会先通过性能工具确认是输入事件、组件渲染还是预览排版耗时，再考虑减少无关渲染，并把高成本的预览更新与输入分开处理。",
 ];
+const interviewTypes = [
+  {
+    title: "综合面",
+    description: "覆盖专业能力、项目经验与沟通表达，一轮看清综合水位。",
+    selectedDescription:
+      "适合小厂 / 创业公司一轮定音的面试。专业与非专业并重，看的是综合水位。",
+    topics: ["项目深挖", "方案权衡", "业务理解"],
+    icon: <ProjectOutlined />,
+  },
+  {
+    title: "专业能力面",
+    description: "聚焦专业技能与深度，考察岗位匹配的专业能力。",
+    selectedDescription:
+      "适合中大厂的二面。环节按目标岗位自动编排，会顺着一个点一直追问到底。",
+    topics: ["专业原理", "项目深挖", "实操排查"],
+    icon: <CodeOutlined />,
+  },
+  {
+    title: "HR 面试",
+    description: "以沟通、动机、价值观等为主，考察职业素养与稳定性。",
+    selectedDescription:
+      "适合中大厂的第一轮。不使用题库，结合你的简历按六个环节即兴推进。",
+    topics: ["自我介绍", "求职动机", "项目经历"],
+    icon: <MessageOutlined />,
+  },
+];
 const interviewRoles = {
   assistant: {
     placement: "start",
@@ -44,11 +76,23 @@ const interviewRoles = {
   user: { placement: "end", variant: "filled" },
 };
 
-export function Interview({ resume }) {
+export function Interview({
+  resume,
+  onToggleSidebar,
+  sidebarOpen,
+  resumes = [],
+  selectedResumeId,
+  onResumeChange,
+}) {
   const [stage, setStage] = useState("setup");
   const [job, setJob] = useState("前端开发工程师");
-  const [kind, setKind] = useState("项目深挖");
+  const [resumeId, setResumeId] = useState(selectedResumeId || resumes[0]?.id);
+  const [kind, setKind] = useState("综合面");
   const [mic, setMic] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [interviewer, setInterviewer] = useState("女面试官");
+  const [micTested, setMicTested] = useState(false);
+  const [speakerTested, setSpeakerTested] = useState(false);
   const [mode, setMode] = useState("voice");
   const [muted, setMuted] = useState(false);
   const [answer, setAnswer] = useState("");
@@ -163,108 +207,154 @@ export function Interview({ resume }) {
     } else setStage("review");
   }
   const isLive = stage === "live";
+  const sessionTitle =
+    stage === "setup"
+      ? "准备一场前端技术面试"
+      : stage === "live"
+        ? "前端开发工程师 · 模拟面试"
+        : "面试复盘 · 前端开发工程师";
   return (
     <div
       className={`interview-layout ${isLive ? "interview-in-progress" : ""}`}
     >
       <section className="interview-left">
-        <header
-          className={`interview-header ${isLive ? "unified-header" : ""}`}
-        >
-          {isLive ? (
-            <>
-              <div className="unified-person">
-                <Avatar
-                  size={34}
-                  className="interviewer-avatar"
-                  icon={<AudioOutlined />}
-                />
-                <div>
-                  <strong>
-                    AI 面试官 <span>模拟面试</span>
-                  </strong>
-                  <small>
-                    <span className="call-dot" />
-                    {mode === "text"
-                      ? "文字交流中"
-                      : muted
-                        ? "麦克风已静音"
-                        : phase === "speaking"
-                          ? "正在说话…"
-                          : "正在聆听…"}
-                    <span className="unified-time">
-                      {String(Math.floor(elapsed / 60)).padStart(2, "0")}:
-                      {String(elapsed % 60).padStart(2, "0")}
-                    </span>
-                  </small>
-                </div>
-              </div>
-              <Tag>原型演示</Tag>
-            </>
-          ) : (
-            <div>
-              <AudioOutlined />
-              <strong>模拟面试</strong>
-              <span className="interview-header-divider" />
-              <span>{stage === "setup" ? "面试准备" : "面试复盘"}</span>
-            </div>
-          )}
+        <header className="chat-header agent-conversation-header interview-session-header">
+          <Button
+            aria-label={sidebarOpen ? "收起侧栏" : "展开侧栏"}
+            type="text"
+            size="small"
+            icon={sidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+            onClick={onToggleSidebar}
+          />
+          <div className="chat-title">
+            <Button
+              aria-label="重新准备面试"
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => setStage("setup")}
+            />
+            <span>{sessionTitle}</span>
+            {isLive && (
+              <small className="interview-session-status">
+                <span className="call-dot" />
+                {mode === "text"
+                  ? "文字交流中"
+                  : muted
+                    ? "麦克风已静音"
+                    : phase === "speaking"
+                      ? "正在说话…"
+                      : "正在聆听…"}
+                <span className="unified-time">
+                  {String(Math.floor(elapsed / 60)).padStart(2, "0")}:
+                  {String(elapsed % 60).padStart(2, "0")}
+                </span>
+              </small>
+            )}
+          </div>
         </header>
         {stage === "setup" ? (
           <div className="interview-setup-scroll">
             <div className="interview-setup">
-              <div className="interview-eyebrow">MOCK INTERVIEW</div>
-              <Avatar
-                size={48}
-                className="interviewer-avatar"
-                icon={<AudioOutlined />}
-              />
-              <h1>让下一次面试，更从容</h1>
-              <p className="interview-subtitle">
-                简历就在手边，我们从你的真实经历聊起。
-              </p>
-              <div className="selected-resume">
-                <FileTextOutlined />
-                <div>
-                  <strong>前端开发工程师 · 简历</strong>
-                  <span>林同学 · 本次面试使用右侧简历</span>
-                </div>
-                <CheckCircleOutlined />
-              </div>
-              <label className="interview-label">目标岗位</label>
+              <label className="interview-label">
+                简历 <em>*</em>
+              </label>
               <Select
-                aria-label="目标岗位"
-                value={job}
-                onChange={setJob}
-                options={[{ value: "前端开发工程师" }]}
+                aria-label="选择简历"
+                value={resumeId}
+                onChange={(value) => {
+                  setResumeId(value);
+                  onResumeChange?.(value);
+                }}
+                options={resumes.map((item) => ({
+                  value: item.id,
+                  label: (
+                    <span className="interview-resume-option">
+                      <FileTextOutlined />
+                      <span>{item.title}</span>
+                      <time>{item.date}</time>
+                    </span>
+                  ),
+                }))}
                 className="interview-select"
               />
-              <label className="interview-label">面试方向</label>
-              <Radio.Group
-                value={kind}
-                onChange={(e) => setKind(e.target.value)}
-                optionType="button"
-                options={["项目深挖"]}
+              <label className="interview-label">
+                目标岗位 <em>*</em>
+              </label>
+              <Input
+                aria-label="目标岗位"
+                value={job}
+                onChange={(event) => setJob(event.target.value)}
+                placeholder="输入目标岗位"
+                className="interview-job-input"
               />
-              <p className="interview-field-note">
-                本版先体验前端项目深挖，其他岗位与方向后续接入。
-              </p>
-              <div className="device-check">
-                <div>
-                  <AudioOutlined />
-                  <span>模拟麦克风可用</span>
-                  <Switch
-                    size="small"
-                    checked={mic}
-                    onChange={setMic}
-                    aria-label="模拟麦克风可用"
-                  />
-                </div>
-                <p>
-                  {mic
-                    ? "开始后像语音通话一样直接聊，同时保留文字记录。"
-                    : "开始后进入文字面试，保留相同的问答记录。"}
-                </p>
+              <div className="interview-recommendations">
+                <span>
+                  <BulbOutlined /> 根据简历推荐：
+                </span>
+                {[
+                  "前端开发工程师",
+                  "软件开发工程师",
+                  "全栈开发工程师",
+                  "网页开发工程师",
+                  "用户界面开发工程师",
+                ].map((role) => (
+                  <button
+                    className={job === role ? "selected" : ""}
+                    key={role}
+                    type="button"
+                    onClick={() => setJob(role)}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+              <div className="interview-type-heading">
+                <label className="interview-label">面试类型</label>
+                <Button
+                  aria-label="面试设置"
+                  title="面试设置"
+                  type="text"
+                  size="small"
+                  icon={<SettingOutlined />}
+                  onClick={() => setSettingsOpen(true)}
+                />
+              </div>
+              <div
+                className="interview-type-grid"
+                role="radiogroup"
+                aria-label="面试类型"
+              >
+                {interviewTypes.map((type) => (
+                  <button
+                    aria-checked={kind === type.title}
+                    className={`interview-type-card ${kind === type.title ? "selected" : ""}`}
+                    key={type.title}
+                    onClick={() => setKind(type.title)}
+                    role="radio"
+                    type="button"
+                  >
+                    <span className="interview-type-card-icon">
+                      {type.icon}
+                    </span>
+                    {kind === type.title && (
+                      <CheckCircleOutlined className="interview-type-check" />
+                    )}
+                    <strong>{type.title}</strong>
+                    <small>
+                      {kind === type.title
+                        ? type.selectedDescription
+                        : type.description}
+                    </small>
+                    {kind === type.title && (
+                      <span className="interview-type-topics">
+                        {type.topics.map((topic) => (
+                          <i key={topic}>{topic}</i>
+                        ))}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
               <Button type="primary" size="large" block onClick={start}>
                 {mic ? "开始语音面试" : "开始文字面试"} <ArrowRightOutlined />
@@ -278,7 +368,7 @@ export function Interview({ resume }) {
           <>
             <div className="unified-context">
               <span>
-                <FileTextOutlined /> AI 求职简历工作台 <span>· 项目深挖</span>
+                <FileTextOutlined /> AI 求职简历工作台 <span>· {kind}</span>
               </span>
               <small>
                 {index + 1} / {questions.length}
@@ -463,6 +553,69 @@ export function Interview({ resume }) {
         </div>
         {resume}
       </section>
+      <Modal
+        title="面试设置"
+        open={settingsOpen}
+        onCancel={() => setSettingsOpen(false)}
+        footer={[
+          <Button key="done" type="primary" onClick={() => setSettingsOpen(false)}>
+            完成
+          </Button>,
+        ]}
+        width={620}
+        className="interview-settings-modal"
+        destroyOnClose={false}
+      >
+        <div className="interview-setting-section">
+          <label>语言</label>
+          <div className="interview-setting-options" role="group" aria-label="面试语言">
+            <Button type="primary" aria-pressed="true">中文</Button>
+          </div>
+        </div>
+        <div className="interview-setting-section">
+          <label>面试官</label>
+          <div className="interview-setting-options" role="group" aria-label="选择面试官">
+            {["女面试官", "男面试官"].map((option) => (
+              <Button
+                key={option}
+                type={interviewer === option ? "primary" : "default"}
+                aria-pressed={interviewer === option}
+                icon={<SoundOutlined />}
+                onClick={() => setInterviewer(option)}
+              >
+                {option}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div className="interview-credit-note">
+          本场模拟面试需消耗 300 积分（仅原型展示，不会真实扣分）。
+        </div>
+        <div className="interview-setting-section">
+          <label>设备检测</label>
+          <div className="interview-device-grid">
+            <div className="interview-device-card">
+              <div className="interview-device-heading">
+                <span className="interview-device-icon"><AudioOutlined /></span>
+                <div><strong>麦克风</strong><small>{micTested ? "测试完成" : "测试你的语音输入"}</small></div>
+                <Button size="small" onClick={() => { setMic(true); setMicTested(true); }}>开始测试</Button>
+              </div>
+              <div className={`interview-mic-meter ${micTested ? "tested" : ""}`} aria-hidden="true">
+                {Array.from({ length: 18 }, (_, i) => <i key={i} />)}
+              </div>
+            </div>
+            <div className="interview-device-card">
+              <div className="interview-device-heading">
+                <span className="interview-device-icon"><SoundOutlined /></span>
+                <div><strong>扬声器</strong><small>{speakerTested ? "测试完成" : "确认扬声器可用"}</small></div>
+                <Button size="small" onClick={() => setSpeakerTested(true)}>{speakerTested ? "重新测试" : "播放测试音"}</Button>
+              </div>
+              <p>播放一段面试官的声音，确认扬声器可用。</p>
+            </div>
+          </div>
+          <small className="interview-device-disclaimer">设备测试为交互演示，不会访问麦克风或播放真实音频。</small>
+        </div>
+      </Modal>
     </div>
   );
 }
