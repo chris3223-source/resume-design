@@ -1,37 +1,652 @@
-import React, { useEffect, useState } from 'react';
-import { App, Avatar, Button, Checkbox, Form, Input, Modal, QRCode, Segmented, Switch, Tabs, Tag } from 'antd';
-import { ArrowLeftOutlined, ArrowRightOutlined, CheckCircleOutlined, CrownOutlined, DesktopOutlined, FileTextOutlined, LockOutlined, LogoutOutlined, MobileOutlined, MoonOutlined, SafetyCertificateOutlined, SettingOutlined, SunOutlined, ThunderboltOutlined, UserOutlined, WechatOutlined } from '@ant-design/icons';
-import './account.css';
+import React, { useEffect, useState } from "react";
+import {
+  App,
+  Avatar,
+  Button,
+  Checkbox,
+  Form,
+  Input,
+  Modal,
+  QRCode,
+  Segmented,
+  Switch,
+  Tabs,
+  Tag,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+  CheckCircleOutlined,
+  CrownOutlined,
+  DesktopOutlined,
+  FileTextOutlined,
+  LockOutlined,
+  LogoutOutlined,
+  MobileOutlined,
+  MoonOutlined,
+  SafetyCertificateOutlined,
+  SettingOutlined,
+  SunOutlined,
+  ThunderboltOutlined,
+  UserOutlined,
+  WechatOutlined,
+} from "@ant-design/icons";
+import "./account.css";
 
-const phoneRules=[{required:true,message:'请输入手机号'},{pattern:/^1\d{10}$/,message:'请输入 11 位手机号'}];
-const codeRules=[{required:true,message:'请输入演示验证码'},{validator:(_,v)=>!v||v==='123456'?Promise.resolve():Promise.reject(new Error('演示验证码为 123456'))}];
-const passwordRules=[{required:true,message:'请设置演示密码'},{min:8,message:'密码至少 8 位'}];
+const phoneRules = [
+  { required: true, message: "请输入手机号" },
+  { pattern: /^1\d{10}$/, message: "请输入 11 位手机号" },
+];
+const codeRules = [
+  { required: true, message: "请输入演示验证码" },
+  {
+    validator: (_, v) =>
+      !v || v === "123456"
+        ? Promise.resolve()
+        : Promise.reject(new Error("演示验证码为 123456")),
+  },
+];
+const passwordRules = [
+  { required: true, message: "请设置演示密码" },
+  { min: 8, message: "密码至少 8 位" },
+];
 
 function CodeInput({ form }) {
-  const [seconds,setSeconds]=useState(0);
-  const {message}=App.useApp();
-  useEffect(()=>{if(!seconds)return;const id=setTimeout(()=>setSeconds(n=>n-1),1000);return()=>clearTimeout(id);},[seconds]);
-  return <div className="verification-row"><Form.Item name="code" rules={codeRules} noStyle><Input autoComplete="off" placeholder="6 位演示验证码" maxLength={6}/></Form.Item><Button disabled={seconds>0} onClick={async()=>{try{await form.validateFields(['phone']);setSeconds(30);message.info('未发送短信，演示验证码：123456');}catch{}}}>{seconds?`${seconds}s 后重试`:'获取验证码'}</Button></div>;
+  const [seconds, setSeconds] = useState(0);
+  const { message } = App.useApp();
+  useEffect(() => {
+    if (!seconds) return;
+    const id = setTimeout(() => setSeconds((n) => n - 1), 1000);
+    return () => clearTimeout(id);
+  }, [seconds]);
+  return (
+    <div className="verification-row">
+      <Form.Item name="code" rules={codeRules} noStyle>
+        <Input autoComplete="off" placeholder="6 位演示验证码" maxLength={6} />
+      </Form.Item>
+      <Button
+        disabled={seconds > 0}
+        onClick={async () => {
+          try {
+            await form.validateFields(["phone"]);
+            setSeconds(30);
+            message.info("未发送短信，演示验证码：123456");
+          } catch {}
+        }}
+      >
+        {seconds ? `${seconds}s 后重试` : "获取验证码"}
+      </Button>
+    </div>
+  );
 }
-function Agreement({openPolicy}) {return <Form.Item name="agree" valuePropName="checked" rules={[{validator:(_,v)=>v?Promise.resolve():Promise.reject(new Error('请先勾选演示协议选项'))}]}><Checkbox><span className="agreement-copy">我已阅读并同意 <button type="button" onClick={()=>openPolicy('用户协议')}>用户协议</button> 和 <button type="button" onClick={()=>openPolicy('隐私政策')}>隐私政策</button></span></Checkbox></Form.Item>;}
-
-export function AuthPage({initialMode='login',onSuccess,onBack}) {
-  const [mode,setMode]=useState(initialMode),[method,setMethod]=useState('sms'),[policy,setPolicy]=useState(null);
-  const [form]=Form.useForm();
-  const {message}=App.useApp();
-  const register=mode==='register',reset=mode==='reset';
-  function change(next){form.resetFields();setMode(next);setMethod('sms');}
-  function complete(values){if(reset){message.success('密码重置流程演示完成，未修改真实密码');change('login');return;}form.resetFields();onSuccess({name:values.name||'林同学',phone:values.phone||'',wechat:method==='wechat',method:method==='wechat'?'微信':'手机号'});message.success(register?'演示注册完成，已进入工作台':'已进入演示工作台');}
-  function policyModal(title){setPolicy(title);}
-  return <div className="auth-page"><header className="auth-header"><div className="auth-brand"><span className="brand-mark"><ThunderboltOutlined/></span><strong>简历工作台</strong></div><Button type="text" icon={<ArrowLeftOutlined/>} onClick={onBack}>返回预览</Button></header><main className="auth-main"><section className="auth-intro"><Tag>YOUR NEXT CHAPTER</Tag><h1>让每一份经历，<br/>走向更好的机会。</h1><p>从一份好简历，到一次从容的面试。<br/>把求职前的每一步，准备得更好。</p><div className="auth-benefits">{[[<FileTextOutlined/>,'让经历更有说服力','梳理亮点，打磨属于你的简历'],[<ThunderboltOutlined/>,'让准备更有方向','围绕目标岗位，找准改进重点'],[<UserOutlined/>,'让面试更有底气','看着简历练习，把回答说清楚']].map(([icon,title,desc])=><div key={title}>{icon}<div><strong>{title}</strong><span>{desc}</span></div></div>)}</div><div className="auth-intro-footer"><SafetyCertificateOutlined/> 你的经历，始终由你掌握</div></section><section className="auth-form-card"><div className="auth-form-heading"><span>{reset?'ACCOUNT RECOVERY':register?'CREATE YOUR ACCOUNT':'WELCOME BACK'}</span><h2>{reset?'找回密码':register?'创建你的账号':'欢迎回来'}</h2><p>{reset?'验证手机号后，设置新的演示密码':register?'为下一份机会，迈出第一步':'登录后，继续你的求职准备'}</p></div>{!register&&!reset&&<Tabs activeKey={method} onChange={key=>{form.resetFields();setMethod(key);}} items={[{key:'sms',label:'验证码登录'},{key:'password',label:'密码登录'},{key:'wechat',label:'微信登录'}]}/>}<Form form={form} layout="vertical" requiredMark={false} onFinish={complete} key={mode+method}>
-    {method==='wechat'&&!register&&!reset?<div className="wechat-login"><QRCode value="resume-workbench-prototype-only-not-a-login-token" size={160} color="#5b6172"/><strong>微信扫码登录</strong><p>二维码仅为视觉演示，扫描无法登录</p><Agreement openPolicy={policyModal}/><Button type="primary" block htmlType="submit" icon={<WechatOutlined/>}>演示扫码确认</Button></div>:<>{register&&<Form.Item name="name" label="你的称呼" rules={[{required:true,message:'请输入称呼'},{whitespace:true,message:'称呼不能全为空格'},{max:20,message:'称呼最多 20 字'}]}><Input prefix={<UserOutlined/>} placeholder="怎么称呼你" maxLength={20}/></Form.Item>}<Form.Item name="phone" label="手机号" rules={phoneRules}><Input prefix={<MobileOutlined/>} placeholder="请输入 11 位手机号" maxLength={11} autoComplete="off"/></Form.Item>{(register||reset||method==='sms')&&<Form.Item label="验证码" required><CodeInput form={form}/></Form.Item>}{(register||reset||method==='password')&&<Form.Item name="password" label={reset?'新密码':'密码'} rules={passwordRules}><Input.Password prefix={<LockOutlined/>} placeholder={register||reset?'设置至少 8 位演示密码':'输入至少 8 位演示密码'} autoComplete="new-password"/></Form.Item>}{method==='password'&&!register&&!reset&&<div className="auth-forgot"><Button type="link" onClick={()=>change('reset')}>忘记密码？</Button></div>}{!reset&&<Agreement openPolicy={policyModal}/>}<Button type="primary" htmlType="submit" size="large" block>{reset?'确认重置':register?'注册并进入工作台':'登录'} <ArrowRightOutlined/></Button></>}
-    </Form><div className="auth-switch">{reset?<Button type="link" onClick={()=>change('login')}>返回登录</Button>:<>{register?'已有账号？':'还没有账号？'}<Button type="link" onClick={()=>change(register?'login':'register')}>{register?'去登录':'立即注册'}</Button></>}</div><div className="auth-demo"><span/>原型演示 · 验证码 123456<br/><small>不创建真实账户，不发送短信，不保存密码</small></div></section></main><footer className="auth-footer">AI 求职简历工作台 <span>为下一份机会，做好准备</span></footer><Modal title={`${policy} · 原型占位`} open={!!policy} footer={<Button onClick={()=>setPolicy(null)}>知道了</Button>} onCancel={()=>setPolicy(null)}><p>这里用于展示{policy}的阅读入口。正式协议内容将在产品上线前补齐。</p><p className="muted">当前是界面演示，勾选不会建立真实服务关系。</p></Modal></div>;
+function Agreement({ openPolicy }) {
+  return (
+    <Form.Item
+      name="agree"
+      valuePropName="checked"
+      rules={[
+        {
+          validator: (_, v) =>
+            v
+              ? Promise.resolve()
+              : Promise.reject(new Error("请先勾选演示协议选项")),
+        },
+      ]}
+    >
+      <Checkbox>
+        <span className="agreement-copy">
+          我已阅读并同意{" "}
+          <button type="button" onClick={() => openPolicy("用户协议")}>
+            用户协议
+          </button>{" "}
+          和{" "}
+          <button type="button" onClick={() => openPolicy("隐私政策")}>
+            隐私政策
+          </button>
+        </span>
+      </Checkbox>
+    </Form.Item>
+  );
 }
 
-export function AccountSettings({account,onAccountChange,onAuth}) {
-  const {message}=App.useApp();
-  const [form]=Form.useForm(),[bindingForm]=Form.useForm();
-  const [memory,setMemory]=useState(false),[modal,setModal]=useState(null),[deletion,setDeletion]=useState('');
-  const masked=account.phone?`${account.phone.slice(0,3)} **** ${account.phone.slice(-4)}`:'未绑定';
-  return <div className="settings-scroll"><div className="settings-title"><div><h1>账户设置</h1><p>管理你的账号信息和个人偏好设置</p></div><Tag>演示账户</Tag></div><div className="settings-content"><section className="settings-card"><div className="settings-card-heading"><h2>账户概览</h2><Tag icon={<CrownOutlined/>}>基础版</Tag></div><div className="account-overview"><div><Avatar size={48} style={{background:'#f4f6ff',color:'#1e4aff'}}>{account.name.slice(0,1)}</Avatar><div><strong>{account.name}</strong><small>每一次准备，都是新的开始</small></div></div><div><span>当前方案</span><strong>免费体验</strong></div><div><span>账号状态</span><strong className="account-ok"><CheckCircleOutlined/> 正常 · 演示</strong></div></div></section><section className="settings-card"><div className="settings-card-heading"><h2>账号信息</h2><Button type="text" size="small" onClick={()=>onAuth('login')}>预览登录 / 注册 <ArrowRightOutlined/></Button></div><Form form={form} layout="vertical" initialValues={{name:account.name}} onFinish={v=>{onAccountChange({...account,name:v.name});message.success('资料已在本次原型中更新');}}><div className="settings-form-grid"><Form.Item name="name" label="用户名" rules={[{required:true,message:'请输入用户名'},{whitespace:true,message:'用户名不能全为空格'},{max:20,message:'最多 20 字'}]}><Input maxLength={20}/></Form.Item><Form.Item label="用户 ID"><Input readOnly value="demo_user_2026" suffix={<Tag>演示</Tag>}/></Form.Item><Form.Item label="注册方式"><Input readOnly value={account.method}/></Form.Item><Form.Item className="profile-save"><Button htmlType="submit">保存资料</Button></Form.Item></div></Form><h3 className="settings-subheading"><SafetyCertificateOutlined/> 账号绑定</h3><div className="binding-grid"><div className="binding-item"><div><MobileOutlined/><strong>手机号</strong><Button size="small" onClick={()=>setModal('phone')}>{account.phone?'更换':'绑定'}</Button></div><p>{masked}</p><small>用于登录和找回账号</small></div><div className="binding-item"><div><WechatOutlined/><strong>微信</strong><Button size="small" onClick={()=>setModal('wechat')}>{account.wechat?'查看':'绑定'}</Button></div><p>{account.wechat?'已绑定 · 演示':'未绑定'}</p><small>可使用微信快捷登录</small></div></div><div className="password-setting"><span><LockOutlined/> 登录密码 <small>演示密码不会保存</small></span><Button size="small" onClick={()=>onAuth('reset')}>设置 / 修改</Button></div></section><section className="settings-card settings-preference"><div className="preference-copy"><span className="preference-icon"><SunOutlined/></span><div><h2>主题</h2><p>简洁清晰，专注你的求职准备</p></div></div><Segmented value="浅色" options={[{value:'浅色',label:'浅色',icon:<SunOutlined/>},{value:'深色',label:'深色',icon:<MoonOutlined/>,disabled:true},{value:'系统',label:'系统',icon:<DesktopOutlined/>,disabled:true}]}/><small className="theme-note">原型暂提供浅色主题</small></section><section className="settings-card settings-preference"><div className="preference-copy"><span className="preference-icon"><ThunderboltOutlined/></span><div><h2>Agent 设置</h2><p>自动记住我主动提供的求职偏好</p></div></div><Switch aria-label="自动记住偏好" checked={memory} onChange={setMemory}/><small className="theme-note">仅保留本次演示状态，不上传数据</small></section><section className="settings-card session-card"><div><h2>登录与安全</h2><p>当前为本地演示会话，刷新后重置</p></div><Button icon={<LogoutOutlined/>} onClick={()=>onAuth('login')}>退出登录</Button></section><div className="settings-danger"><span>不再使用这个账号？</span><Button type="link" onClick={()=>{setDeletion('');setModal('delete');}}>注销账号</Button></div></div><Modal title={modal==='phone'?'绑定手机号':modal==='wechat'?'绑定微信':'注销演示账号'} open={!!modal} onCancel={()=>setModal(null)} afterOpenChange={open=>{if(open&&modal==='phone')bindingForm.resetFields();}} footer={null} destroyOnHidden>{modal==='phone'?<><p className="muted">演示绑定流程，不会发送短信或修改真实账号。</p><Form form={bindingForm} layout="vertical" onFinish={v=>{onAccountChange({...account,phone:v.phone});setModal(null);message.success('已更新演示手机号');}}><Form.Item name="phone" label="手机号" rules={phoneRules}><Input placeholder="请输入手机号" maxLength={11}/></Form.Item><Form.Item label="短信验证码"><CodeInput form={bindingForm}/></Form.Item><Button type="primary" htmlType="submit" block>确认绑定（演示）</Button><p className="auth-demo">演示验证码：123456</p></Form></>:modal==='wechat'?<div className="wechat-login"><WechatOutlined style={{fontSize:36,color:'#8b91a1'}}/><h3>微信绑定</h3><p>当前为原型，不获取微信授权。</p><Button type="primary" onClick={()=>{onAccountChange({...account,wechat:true});setModal(null);message.success('微信绑定演示完成');}}>演示确认绑定</Button></div>:<><p>这里只演示注销确认。输入 delete 后，将返回登录页；不会删除任何真实账号或文件。</p><Input aria-label="注销确认" value={deletion} onChange={e=>setDeletion(e.target.value)} placeholder="请输入 delete"/><Button block danger type="primary" disabled={deletion!=='delete'} className="delete-confirm" onClick={()=>{setModal(null);onAuth('login');message.info('已退出演示账户，未删除真实数据');}}>确认注销（演示）</Button></>}</Modal></div>;
+export function AuthPage({ initialMode = "login", onSuccess, onBack }) {
+  const [mode, setMode] = useState(initialMode),
+    [method, setMethod] = useState("sms"),
+    [policy, setPolicy] = useState(null);
+  const [form] = Form.useForm();
+  const { message } = App.useApp();
+  const register = mode === "register",
+    reset = mode === "reset";
+  function change(next) {
+    form.resetFields();
+    setMode(next);
+    setMethod("sms");
+  }
+  function complete(values) {
+    if (reset) {
+      message.success("密码重置流程演示完成，未修改真实密码");
+      change("login");
+      return;
+    }
+    form.resetFields();
+    onSuccess({
+      name: values.name || "林同学",
+      phone: values.phone || "",
+      wechat: method === "wechat",
+      method: method === "wechat" ? "微信" : "手机号",
+    });
+    message.success(
+      register ? "演示注册完成，已进入工作台" : "已进入演示工作台",
+    );
+  }
+  function policyModal(title) {
+    setPolicy(title);
+  }
+  return (
+    <div className="auth-page">
+      <header className="auth-header">
+        <div className="auth-brand">
+          <span className="brand-mark">
+            <ThunderboltOutlined />
+          </span>
+          <strong>简历工作台</strong>
+        </div>
+        <Button type="text" icon={<ArrowLeftOutlined />} onClick={onBack}>
+          返回预览
+        </Button>
+      </header>
+      <main className="auth-main">
+        <section className="auth-intro">
+          <Tag>YOUR NEXT CHAPTER</Tag>
+          <h1>
+            让每一份经历，
+            <br />
+            走向更好的机会。
+          </h1>
+          <p>
+            从一份好简历，到一次从容的面试。
+            <br />
+            把求职前的每一步，准备得更好。
+          </p>
+          <div className="auth-benefits">
+            {[
+              [
+                <FileTextOutlined />,
+                "让经历更有说服力",
+                "梳理亮点，打磨属于你的简历",
+              ],
+              [
+                <ThunderboltOutlined />,
+                "让准备更有方向",
+                "围绕目标岗位，找准改进重点",
+              ],
+              [
+                <UserOutlined />,
+                "让面试更有底气",
+                "看着简历练习，把回答说清楚",
+              ],
+            ].map(([icon, title, desc]) => (
+              <div key={title}>
+                {icon}
+                <div>
+                  <strong>{title}</strong>
+                  <span>{desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="auth-intro-footer">
+            <SafetyCertificateOutlined /> 你的经历，始终由你掌握
+          </div>
+        </section>
+        <section className="auth-form-card">
+          <div className="auth-form-heading">
+            <span>
+              {reset
+                ? "ACCOUNT RECOVERY"
+                : register
+                  ? "CREATE YOUR ACCOUNT"
+                  : "WELCOME BACK"}
+            </span>
+            <h2>
+              {reset ? "找回密码" : register ? "创建你的账号" : "欢迎回来"}
+            </h2>
+            <p>
+              {reset
+                ? "验证手机号后，设置新的演示密码"
+                : register
+                  ? "为下一份机会，迈出第一步"
+                  : "登录后，继续你的求职准备"}
+            </p>
+          </div>
+          {!register && !reset && (
+            <Tabs
+              activeKey={method}
+              onChange={(key) => {
+                form.resetFields();
+                setMethod(key);
+              }}
+              items={[
+                { key: "sms", label: "验证码登录" },
+                { key: "password", label: "密码登录" },
+                { key: "wechat", label: "微信登录" },
+              ]}
+            />
+          )}
+          <Form
+            form={form}
+            layout="vertical"
+            requiredMark={false}
+            onFinish={complete}
+            key={mode + method}
+          >
+            {method === "wechat" && !register && !reset ? (
+              <div className="wechat-login">
+                <QRCode
+                  value="resume-workbench-prototype-only-not-a-login-token"
+                  size={160}
+                  color="#5b6172"
+                />
+                <strong>微信扫码登录</strong>
+                <p>二维码仅为视觉演示，扫描无法登录</p>
+                <Agreement openPolicy={policyModal} />
+                <Button
+                  type="primary"
+                  block
+                  htmlType="submit"
+                  icon={<WechatOutlined />}
+                >
+                  演示扫码确认
+                </Button>
+              </div>
+            ) : (
+              <>
+                {register && (
+                  <Form.Item
+                    name="name"
+                    label="你的称呼"
+                    rules={[
+                      { required: true, message: "请输入称呼" },
+                      { whitespace: true, message: "称呼不能全为空格" },
+                      { max: 20, message: "称呼最多 20 字" },
+                    ]}
+                  >
+                    <Input
+                      prefix={<UserOutlined />}
+                      placeholder="怎么称呼你"
+                      maxLength={20}
+                    />
+                  </Form.Item>
+                )}
+                <Form.Item name="phone" label="手机号" rules={phoneRules}>
+                  <Input
+                    prefix={<MobileOutlined />}
+                    placeholder="请输入 11 位手机号"
+                    maxLength={11}
+                    autoComplete="off"
+                  />
+                </Form.Item>
+                {(register || reset || method === "sms") && (
+                  <Form.Item label="验证码" required>
+                    <CodeInput form={form} />
+                  </Form.Item>
+                )}
+                {(register || reset || method === "password") && (
+                  <Form.Item
+                    name="password"
+                    label={reset ? "新密码" : "密码"}
+                    rules={passwordRules}
+                  >
+                    <Input.Password
+                      prefix={<LockOutlined />}
+                      placeholder={
+                        register || reset
+                          ? "设置至少 8 位演示密码"
+                          : "输入至少 8 位演示密码"
+                      }
+                      autoComplete="new-password"
+                    />
+                  </Form.Item>
+                )}
+                {method === "password" && !register && !reset && (
+                  <div className="auth-forgot">
+                    <Button type="link" onClick={() => change("reset")}>
+                      忘记密码？
+                    </Button>
+                  </div>
+                )}
+                {!reset && <Agreement openPolicy={policyModal} />}
+                <Button type="primary" htmlType="submit" size="large" block>
+                  {reset ? "确认重置" : register ? "注册并进入工作台" : "登录"}{" "}
+                  <ArrowRightOutlined />
+                </Button>
+              </>
+            )}
+          </Form>
+          <div className="auth-switch">
+            {reset ? (
+              <Button type="link" onClick={() => change("login")}>
+                返回登录
+              </Button>
+            ) : (
+              <>
+                {register ? "已有账号？" : "还没有账号？"}
+                <Button
+                  type="link"
+                  onClick={() => change(register ? "login" : "register")}
+                >
+                  {register ? "去登录" : "立即注册"}
+                </Button>
+              </>
+            )}
+          </div>
+          <div className="auth-demo">
+            <span />
+            原型演示 · 验证码 123456
+            <br />
+            <small>不创建真实账户，不发送短信，不保存密码</small>
+          </div>
+        </section>
+      </main>
+      <footer className="auth-footer">
+        AI 求职简历工作台 <span>为下一份机会，做好准备</span>
+      </footer>
+      <Modal
+        title={`${policy} · 原型占位`}
+        open={!!policy}
+        footer={<Button onClick={() => setPolicy(null)}>知道了</Button>}
+        onCancel={() => setPolicy(null)}
+      >
+        <p>这里用于展示{policy}的阅读入口。正式协议内容将在产品上线前补齐。</p>
+        <p className="muted">当前是界面演示，勾选不会建立真实服务关系。</p>
+      </Modal>
+    </div>
+  );
+}
+
+export function AccountSettings({ account, onAccountChange, onAuth }) {
+  const { message } = App.useApp();
+  const [form] = Form.useForm(),
+    [bindingForm] = Form.useForm();
+  const [memory, setMemory] = useState(false),
+    [modal, setModal] = useState(null),
+    [deletion, setDeletion] = useState("");
+  const masked = account.phone
+    ? `${account.phone.slice(0, 3)} **** ${account.phone.slice(-4)}`
+    : "未绑定";
+  return (
+    <div className="settings-scroll">
+      <div className="settings-title">
+        <div>
+          <h1>账户设置</h1>
+          <p>管理你的账号信息和个人偏好设置</p>
+        </div>
+        <Tag>演示账户</Tag>
+      </div>
+      <div className="settings-content">
+        <section className="settings-card">
+          <div className="settings-card-heading">
+            <h2>账户概览</h2>
+            <Tag icon={<CrownOutlined />}>基础版</Tag>
+          </div>
+          <div className="account-overview">
+            <div>
+              <Avatar
+                size={48}
+                style={{ background: "#f4f6ff", color: "#1e4aff" }}
+              >
+                {account.name.slice(0, 1)}
+              </Avatar>
+              <div>
+                <strong>{account.name}</strong>
+                <small>每一次准备，都是新的开始</small>
+              </div>
+            </div>
+            <div>
+              <span>当前方案</span>
+              <strong>免费体验</strong>
+            </div>
+            <div>
+              <span>账号状态</span>
+              <strong className="account-ok">
+                <CheckCircleOutlined /> 正常 · 演示
+              </strong>
+            </div>
+          </div>
+        </section>
+        <section className="settings-card">
+          <div className="settings-card-heading">
+            <h2>账号信息</h2>
+            <Button type="text" size="small" onClick={() => onAuth("login")}>
+              预览登录 / 注册 <ArrowRightOutlined />
+            </Button>
+          </div>
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{ name: account.name }}
+            onFinish={(v) => {
+              onAccountChange({ ...account, name: v.name });
+              message.success("资料已在本次原型中更新");
+            }}
+          >
+            <div className="settings-form-grid">
+              <Form.Item
+                name="name"
+                label="用户名"
+                rules={[
+                  { required: true, message: "请输入用户名" },
+                  { whitespace: true, message: "用户名不能全为空格" },
+                  { max: 20, message: "最多 20 字" },
+                ]}
+              >
+                <Input maxLength={20} />
+              </Form.Item>
+              <Form.Item label="用户 ID">
+                <Input
+                  readOnly
+                  value="demo_user_2026"
+                  suffix={<Tag>演示</Tag>}
+                />
+              </Form.Item>
+              <Form.Item label="注册方式">
+                <Input readOnly value={account.method} />
+              </Form.Item>
+              <Form.Item className="profile-save">
+                <Button htmlType="submit">保存资料</Button>
+              </Form.Item>
+            </div>
+          </Form>
+          <h3 className="settings-subheading">
+            <SafetyCertificateOutlined /> 账号绑定
+          </h3>
+          <div className="binding-grid">
+            <div className="binding-item">
+              <div>
+                <MobileOutlined />
+                <strong>手机号</strong>
+                <Button size="small" onClick={() => setModal("phone")}>
+                  {account.phone ? "更换" : "绑定"}
+                </Button>
+              </div>
+              <p>{masked}</p>
+              <small>用于登录和找回账号</small>
+            </div>
+            <div className="binding-item">
+              <div>
+                <WechatOutlined />
+                <strong>微信</strong>
+                <Button size="small" onClick={() => setModal("wechat")}>
+                  {account.wechat ? "查看" : "绑定"}
+                </Button>
+              </div>
+              <p>{account.wechat ? "已绑定 · 演示" : "未绑定"}</p>
+              <small>可使用微信快捷登录</small>
+            </div>
+          </div>
+          <div className="password-setting">
+            <span>
+              <LockOutlined /> 登录密码 <small>演示密码不会保存</small>
+            </span>
+            <Button size="small" onClick={() => onAuth("reset")}>
+              设置 / 修改
+            </Button>
+          </div>
+        </section>
+        <section className="settings-card settings-preference">
+          <div className="preference-copy">
+            <span className="preference-icon">
+              <SunOutlined />
+            </span>
+            <div>
+              <h2>主题</h2>
+              <p>简洁清晰，专注你的求职准备</p>
+            </div>
+          </div>
+          <Segmented
+            value="浅色"
+            options={[
+              { value: "浅色", label: "浅色", icon: <SunOutlined /> },
+              {
+                value: "深色",
+                label: "深色",
+                icon: <MoonOutlined />,
+                disabled: true,
+              },
+              {
+                value: "系统",
+                label: "系统",
+                icon: <DesktopOutlined />,
+                disabled: true,
+              },
+            ]}
+          />
+          <small className="theme-note">原型暂提供浅色主题</small>
+        </section>
+        <section className="settings-card settings-preference">
+          <div className="preference-copy">
+            <span className="preference-icon">
+              <ThunderboltOutlined />
+            </span>
+            <div>
+              <h2>Agent 设置</h2>
+              <p>自动记住我主动提供的求职偏好</p>
+            </div>
+          </div>
+          <Switch
+            aria-label="自动记住偏好"
+            checked={memory}
+            onChange={setMemory}
+          />
+          <small className="theme-note">仅保留本次演示状态，不上传数据</small>
+        </section>
+        <section className="settings-card session-card">
+          <div>
+            <h2>登录与安全</h2>
+            <p>当前为本地演示会话，刷新后重置</p>
+          </div>
+          <Button icon={<LogoutOutlined />} onClick={() => onAuth("login")}>
+            退出登录
+          </Button>
+        </section>
+        <div className="settings-danger">
+          <span>不再使用这个账号？</span>
+          <Button
+            type="link"
+            onClick={() => {
+              setDeletion("");
+              setModal("delete");
+            }}
+          >
+            注销账号
+          </Button>
+        </div>
+      </div>
+      <Modal
+        title={
+          modal === "phone"
+            ? "绑定手机号"
+            : modal === "wechat"
+              ? "绑定微信"
+              : "注销演示账号"
+        }
+        open={!!modal}
+        onCancel={() => setModal(null)}
+        afterOpenChange={(open) => {
+          if (open && modal === "phone") bindingForm.resetFields();
+        }}
+        footer={null}
+        destroyOnHidden
+      >
+        {modal === "phone" ? (
+          <>
+            <p className="muted">演示绑定流程，不会发送短信或修改真实账号。</p>
+            <Form
+              form={bindingForm}
+              layout="vertical"
+              onFinish={(v) => {
+                onAccountChange({ ...account, phone: v.phone });
+                setModal(null);
+                message.success("已更新演示手机号");
+              }}
+            >
+              <Form.Item name="phone" label="手机号" rules={phoneRules}>
+                <Input placeholder="请输入手机号" maxLength={11} />
+              </Form.Item>
+              <Form.Item label="短信验证码">
+                <CodeInput form={bindingForm} />
+              </Form.Item>
+              <Button type="primary" htmlType="submit" block>
+                确认绑定（演示）
+              </Button>
+              <p className="auth-demo">演示验证码：123456</p>
+            </Form>
+          </>
+        ) : modal === "wechat" ? (
+          <div className="wechat-login">
+            <WechatOutlined style={{ fontSize: 36, color: "#8b91a1" }} />
+            <h3>微信绑定</h3>
+            <p>当前为原型，不获取微信授权。</p>
+            <Button
+              type="primary"
+              onClick={() => {
+                onAccountChange({ ...account, wechat: true });
+                setModal(null);
+                message.success("微信绑定演示完成");
+              }}
+            >
+              演示确认绑定
+            </Button>
+          </div>
+        ) : (
+          <>
+            <p>
+              这里只演示注销确认。输入 delete
+              后，将返回登录页；不会删除任何真实账号或文件。
+            </p>
+            <Input
+              aria-label="注销确认"
+              value={deletion}
+              onChange={(e) => setDeletion(e.target.value)}
+              placeholder="请输入 delete"
+            />
+            <Button
+              block
+              danger
+              type="primary"
+              disabled={deletion !== "delete"}
+              className="delete-confirm"
+              onClick={() => {
+                setModal(null);
+                onAuth("login");
+                message.info("已退出演示账户，未删除真实数据");
+              }}
+            >
+              确认注销（演示）
+            </Button>
+          </>
+        )}
+      </Modal>
+    </div>
+  );
 }
