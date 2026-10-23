@@ -6,6 +6,11 @@ import { Interview } from "./Interview.jsx";
 import { AboutMe } from "./AboutMe.jsx";
 import { AccountSettings, AuthPage } from "./Account.jsx";
 import {
+  JobAnalysisForm,
+  JobAnalysisInlineForm,
+  JobAnalysisPage,
+} from "./JobAnalysis.jsx";
+import {
   ConfigProvider,
   App as AntApp,
   Button,
@@ -14,7 +19,6 @@ import {
   Tag,
   Tabs,
   Form,
-  Input,
   Select,
   Radio,
   Splitter,
@@ -278,7 +282,128 @@ function Experience() {
     { key: "3", label: "准备一场前端技术面试" },
   ]);
   const [histories, setHistories] = useState({ 1: initial, 2: [], 3: [] });
+  const [jobAnalyses, setJobAnalyses] = useState([]);
+  const [selectedJobAnalysisId, setSelectedJobAnalysisId] = useState(null);
+  const [jobFormOpen, setJobFormOpen] = useState(false);
   const notify = (text) => message.info(text);
+  function openJobForm() {
+    setJobFormOpen(true);
+  }
+  function jobAnalysisMessage(analysis, status) {
+    return (
+      <div className="job-chat-result">
+        <p>
+          {status === "processing"
+            ? "已创建岗位分析任务，正在整理演示报告…"
+            : "岗位分析流程演示已完成，报告已整理好。"}
+        </p>
+        <div className={`job-chat-result-card ${status === "processing" ? "processing" : ""}`}>
+          <div className="job-chat-result-icon">
+            <AimOutlined />
+          </div>
+          <div>
+            <strong>{analysis.role}</strong>
+            <span>{analysis.company || analysis.resumeTitle}</span>
+            <small>
+              {status === "processing"
+                ? "JD 解析 → 简历诊断 → 求职准备"
+                : "JD 解析 · 简历诊断 · 经历追问 · 面试准备"}
+            </small>
+          </div>
+          {status === "complete" && (
+            <Button
+              type="link"
+              onClick={() => {
+                setSelectedJobAnalysisId(analysis.id);
+                setPage("jobs");
+                setFull(false);
+              }}
+            >
+              查看完整报告 <ArrowRightOutlined />
+            </Button>
+          )}
+        </div>
+        <small className="demo-note">
+          {status === "processing"
+            ? "演示流程处理中 · 未调用 AI 或岗位分析服务"
+            : "演示流程 · 未调用 AI 或岗位分析服务"}
+        </small>
+      </div>
+    );
+  }
+  function submitJobAnalysis(values, { source = "jobs", messageKey } = {}) {
+    const resume = resumeItems.find((item) => item.id === values.resumeId);
+    if (!resume) return;
+    const id = `job-${Date.now()}`;
+    const analysis = {
+      ...values,
+      id,
+      resumeTitle: resume.title,
+      createdAt: new Date().toLocaleDateString("zh-CN"),
+      status: "processing",
+    };
+    setJobAnalyses((items) => [analysis, ...items]);
+    setSelectedJobAnalysisId(id);
+    if (source === "jobs") setJobFormOpen(false);
+    if (source === "agent" && messageKey) {
+      setHistories((items) => ({
+        ...items,
+        [session]: (items[session] || []).map((item) =>
+          item.key === messageKey
+            ? { ...item, content: jobAnalysisMessage(analysis, "processing") }
+            : item,
+        ),
+      }));
+    }
+    window.setTimeout(() => {
+      const completed = { ...analysis, status: "complete" };
+      setJobAnalyses((items) =>
+        items.map((item) => (item.id === id ? completed : item)),
+      );
+      if (source === "agent" && messageKey) {
+        setHistories((items) => ({
+          ...items,
+          [session]: (items[session] || []).map((item) =>
+            item.key === messageKey
+              ? { ...item, content: jobAnalysisMessage(completed, "complete") }
+              : item,
+          ),
+        }));
+      }
+    }, 1200);
+  }
+  function openJobAnalysisInChat() {
+    setPage("agent");
+    setEditing(false);
+    const messageKey = `job-form-${Date.now()}`;
+    setHistories((items) => ({
+      ...items,
+      [session]: [
+        ...(items[session] || []),
+        {
+          key: messageKey,
+          role: "assistant",
+          content: (
+            <JobAnalysisInlineForm
+              selectedResumeId={currentResume.id}
+              selectedResumeTitle={currentResume.title}
+              onCancel={() =>
+                setHistories((history) => ({
+                  ...history,
+                  [session]: (history[session] || []).filter(
+                    (item) => item.key !== messageKey,
+                  ),
+                }))
+              }
+              onSubmit={(values) =>
+                submitJobAnalysis(values, { source: "agent", messageKey })
+              }
+            />
+          ),
+        },
+      ],
+    }));
+  }
   function open(key) {
     if (key === "interview") {
       setPage("interview");
@@ -304,7 +429,7 @@ function Experience() {
     const reply = isInterview
       ? "我们可以围绕你的项目经历、React 基础和工程实践准备面试。右侧已打开面试准备，可以先查看练习方向。"
       : isJob
-        ? "岗位匹配需要目标岗位描述。你可以在右侧粘贴 JD，正式接入后再分析技能要求与简历差距。"
+        ? "我先收集目标岗位和简历信息，再把 JD 解析、简历诊断与后续准备建议整理在这次对话里。"
         : "建议先明确你在项目中的具体职责，再补充解决问题的方法与真实结果。右侧示例简历可供对照；正式版本会基于你提供的经历给出修改建议。";
     setHistories((p) => ({
       ...p,
@@ -325,7 +450,9 @@ function Experience() {
         },
       ],
     }));
-    open(isInterview ? "interview" : isJob ? "jobs" : "resume");
+    if (isInterview) open("interview");
+    else if (isJob) openJobAnalysisInChat();
+    else open("resume");
     setValue("");
   }
   function content(key) {
@@ -345,32 +472,6 @@ function Experience() {
           onChange={updateResume}
           notify={notify}
         />
-      );
-    if (key === "jobs")
-      return (
-        <div className="panel-scroll">
-          <div className="form-card">
-            <h3>
-              <span />
-              岗位匹配
-            </h3>
-            <p className="muted">
-              贴入你感兴趣的岗位描述，找到简历与岗位之间的差距。
-            </p>
-            <Input.TextArea
-              rows={10}
-              placeholder="在这里粘贴岗位职责与任职要求…"
-            />
-            <Button
-              className="panel-primary"
-              type="primary"
-              onClick={() => notify("原型尚未连接岗位分析服务，未执行分析")}
-            >
-              分析匹配度
-            </Button>
-            <p className="demo-note">演示入口 · 尚未连接分析服务</p>
-          </div>
-        </div>
       );
     return (
       <div className="panel-scroll">
@@ -430,7 +531,13 @@ function Experience() {
           icon={sidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
           onClick={() => setSidebar((p) => !p)}
         />
-        <span className="topbar-title">求职准备，从这里开始</span>
+        <span className="topbar-title">
+          {page === "jobs"
+            ? "岗位分析报告"
+            : page === "resumes"
+              ? "我的简历"
+              : "求职准备，从这里开始"}
+        </span>
       </div>
       <Tag>演示模式</Tag>
     </header>
@@ -459,7 +566,7 @@ function Experience() {
               {nav.map(([key, icon, label]) => (
                 <button
                   key={key}
-                  className={`nav-item ${(page === "resumes" || page === "resume-preview" ? key === "resume" : page === "interview" ? key === "interview" : page === "settings" ? false : key === "agent") ? "selected" : ""}`}
+                  className={`nav-item ${(page === "resumes" || page === "resume-preview" ? key === "resume" : page === "interview" ? key === "interview" : page === "jobs" ? key === "jobs" : page === "settings" ? false : key === "agent") ? "selected" : ""}`}
                   onClick={() => {
                     if (key === "agent") {
                       setEditing(false);
@@ -470,6 +577,9 @@ function Experience() {
                     } else if (key === "resume") {
                       setFull(false);
                       setPage("resumes");
+                    } else if (key === "jobs") {
+                      setFull(false);
+                      setPage("jobs");
                     } else {
                       setPage("agent");
                       open(key);
@@ -588,6 +698,14 @@ function Experience() {
               onAccountChange={setAccount}
               onAuth={setAuthMode}
             />
+          ) : page === "jobs" ? (
+            <JobAnalysisPage
+              analyses={jobAnalyses}
+              selectedAnalysisId={selectedJobAnalysisId}
+              onBack={() => setSelectedJobAnalysisId(null)}
+              onCreate={openJobForm}
+              resumes={resumeItems}
+            />
           ) : page === "interview" ? (
             <Interview
               resume={<Resume doc={currentResume} />}
@@ -613,9 +731,7 @@ function Experience() {
                       aria-label={sidebar ? "收起侧栏" : "展开侧栏"}
                       type="text"
                       size="small"
-                      icon={
-                        sidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />
-                      }
+                      icon={sidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
                       onClick={() => setSidebar((p) => !p)}
                     />
                     <div className="chat-title">
@@ -627,8 +743,7 @@ function Experience() {
                         onClick={newChat}
                       />
                       <span>
-                        {sessions.find((s) => s.key === session)?.label ||
-                          "新会话"}
+                        {sessions.find((s) => s.key === session)?.label || "新会话"}
                       </span>
                     </div>
                     <Dropdown
@@ -653,7 +768,9 @@ function Experience() {
                               >
                                 <FileTextOutlined />
                                 <span>
-                                  <span className="agent-resume-picker-title">{item.title}</span>
+                                  <span className="agent-resume-picker-title">
+                                    {item.title}
+                                  </span>
                                   <small>{item.date} · 最近更新</small>
                                 </span>
                                 {item.id === currentResume.id && <CheckOutlined />}
@@ -787,7 +904,7 @@ function Experience() {
                                 size="small"
                                 shape="round"
                                 icon={<FileTextOutlined />}
-                                onClick={() => open("jobs")}
+                                onClick={openJobAnalysisInChat}
                               >
                                 岗位匹配
                               </Button>
@@ -897,6 +1014,13 @@ function Experience() {
           )}
         </div>
       </main>
+      <JobAnalysisForm
+        open={jobFormOpen}
+        resumes={resumeItems}
+        selectedResumeId={currentResume.id}
+        onCancel={() => setJobFormOpen(false)}
+        onSubmit={(values) => submitJobAnalysis(values, { source: "jobs" })}
+      />
     </div>
   );
 }

@@ -262,11 +262,7 @@ export function ResumeLibrary({
           dialog?.type === "upload" ? "resume-import-modal" : undefined
         }
         closeIcon={
-          dialog?.type === "upload" ? (
-            <span>
-              <CloseOutlined /> 关闭
-            </span>
-          ) : undefined
+          dialog?.type === "upload" ? <CloseOutlined /> : undefined
         }
         open={!!dialog}
         onCancel={() => setDialog(null)}
@@ -300,7 +296,7 @@ export function ResumeLibrary({
               </Form.Item>
               {dialog.type === "new" && (
                 <Form.Item label="求职阶段" name="stage">
-                  <Radio.Group options={["应届生", "资深"]} />
+                  <Radio.Group options={["在校生", "应届生", "已工作"]} />
                 </Form.Item>
               )}
               <Button type="primary" htmlType="submit" block>
