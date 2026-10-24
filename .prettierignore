@@ -1,0 +1,10 @@
+node_modules/
+dist/
+pnpm-lock.yaml
+package-lock.json
+AGENTS.md
+design-qa.md
+.openai/hosting.json
+worker/index.js
+scripts/prepare-sites-build.mjs
+tests/sites-worker.test.mjs

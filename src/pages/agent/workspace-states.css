@@ -1,0 +1,52 @@
+/* Empty conversation and full workspace states */
+.empty-chat {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80%;
+  text-align: center;
+}
+.empty-chat h2 {
+  font-size: 21px;
+  color: #111213;
+  margin: 22px 0 8px;
+}
+.empty-chat p {
+  font-size: 12px;
+  color: #8b91a1;
+  margin-bottom: 28px;
+}
+.empty-chat > .ant-btn {
+  width: 270px;
+  text-align: left;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 12px;
+  height: 43px;
+}
+.workspace-full .sidebar {
+  display: none;
+}
+.workspace-full .ant-splitter-bar {
+  display: none;
+}
+.sidebar-backdrop {
+  display: none;
+}
+.workspace-full .ant-splitter-panel:has(.workspace) {
+  flex: 1 1 100% !important;
+  max-width: none !important;
+  width: 100% !important;
+}
+.chat-scroll .ant-bubble-list {
+  height: auto;
+  overflow: visible;
+  max-height: none;
+}
+.workspace-full .workspace {
+  border-radius: 0;
+}
+.ant-splitter-bar-dragger {
+  opacity: 0.6;
+}

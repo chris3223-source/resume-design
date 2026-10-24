@@ -1,0 +1,16 @@
+/* Preserve white content surfaces against the light canvas. */
+html,
+body,
+#root,
+.ant-app,
+.sidebar {
+  background-color: #fff;
+}
+.topbar {
+  background-color: var(--theme-page);
+}
+.app-shell,
+.main-shell,
+.split-area {
+  background-color: var(--theme-page);
+}

@@ -1,0 +1,46 @@
+/* Resume print layout */
+@media print {
+  .sidebar,
+  .topbar,
+  .chat-pane,
+  .ant-tabs-nav,
+  .resume-toolbar,
+  .paper-caption {
+    display: none !important;
+  }
+  .app-shell,
+  .main-shell,
+  .split-area,
+  .ant-splitter,
+  .ant-splitter-panel,
+  .workspace,
+  .ant-tabs,
+  .ant-tabs-content-holder,
+  .ant-tabs-content,
+  .ant-tabs-tabpane,
+  .resume-wrap,
+  .paper-scroll {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border: 0 !important;
+  }
+  .ant-splitter-panel:has(.chat-pane) {
+    display: none !important;
+  }
+  .resume-paper {
+    box-shadow: none;
+    padding: 10mm;
+    max-width: none;
+  }
+  .paper-scroll {
+    padding: 0;
+    background: white;
+  }
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}

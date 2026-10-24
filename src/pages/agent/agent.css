@@ -1,0 +1,230 @@
+/* Agent conversation */
+.chat-pane {
+  background: var(--theme-page);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.chat-header {
+  height: 58px;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  gap: 10px;
+}
+.chat-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.chat-title > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+.chat-header > .ant-btn {
+  font-size: 11px;
+  flex-shrink: 0;
+  background: #ffffffb0;
+}
+.agent-resume-picker {
+  width: 280px;
+  padding: 12px;
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(25 40 75 / 12%);
+}
+.agent-resume-picker > strong {
+  display: block;
+  padding: 0 2px 10px;
+  color: #8b91a1;
+  font-size: 11px;
+  font-weight: 500;
+}
+.agent-resume-picker-list {
+  display: grid;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.agent-resume-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 0;
+  border-radius: 7px;
+  background: #fff;
+  color: #5b6172;
+  text-align: left;
+  cursor: pointer;
+}
+.agent-resume-picker-item:hover,
+.agent-resume-picker-item.selected {
+  background: var(--theme-subtle);
+}
+.agent-resume-picker-item > .anticon:first-child {
+  flex: 0 0 auto;
+  color: #8b91a1;
+}
+.agent-resume-picker-item > span {
+  flex: 1;
+  min-width: 0;
+}
+.agent-resume-picker-title {
+  display: block;
+  overflow: hidden;
+  color: #111213;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-resume-picker-item small {
+  display: block;
+  margin-top: 3px;
+  color: #8b91a1;
+  font-size: 9px;
+}
+.agent-resume-picker-item > .anticon:last-child {
+  flex: 0 0 auto;
+  color: var(--theme-primary);
+  font-size: 11px;
+}
+.chat-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 24px 26px;
+}
+.date-label {
+  text-align: center;
+  color: #a1a6b3;
+  font-size: 10px;
+  margin: 12px 0 28px;
+}
+.ai-avatar {
+  background: var(--theme-primary);
+  color: #fff;
+  flex-shrink: 0;
+}
+.ant-bubble-list {
+  gap: 24px !important;
+}
+.ant-bubble {
+  font-size: 13px;
+  line-height: 1.9;
+}
+.ant-bubble p {
+  margin: 0 0 13px;
+}
+.ant-bubble-end .ant-bubble-content {
+  background: var(--theme-user-message) !important;
+  border-radius: 12px 3px 12px 12px !important;
+  padding: 14px 18px !important;
+}
+.ant-bubble-start .ant-bubble-content {
+  padding: 0 0 0 6px !important;
+}
+.ant-bubble-start:has(.job-chat-form) .ant-bubble-content {
+  width: min(540px, calc(100vw - 320px)) !important;
+  max-width: 100% !important;
+}
+.ant-bubble-start:has(.job-chat-form) .job-chat-form {
+  width: 100%;
+}
+.suggestion {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--theme-border);
+  padding: 13px 14px;
+  border-radius: 9px;
+  margin: 17px 0 12px;
+  color: #8b91a1;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.suggestion > .anticon {
+  color: #8b91a1;
+  padding-top: 3px;
+}
+.demo-note {
+  color: #a1a6b3;
+  font-size: 10px;
+  line-height: 1.8;
+}
+.chat-next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 0 45px;
+}
+.chat-next button {
+  border: 1px solid var(--theme-border-strong);
+  border-radius: 7px;
+  background: #ffffff80;
+  padding: 8px 11px;
+  color: #8b91a1;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.composer {
+  padding: 12px 18px 0;
+  margin-top: auto;
+}
+.composer .ant-sender {
+  background: white;
+  border-color: var(--theme-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #11121304;
+}
+.composer .ant-sender-input {
+  font-size: 13px !important;
+}
+.sender-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+.quick-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.quick-actions .ant-btn {
+  font-size: 10px;
+  height: 26px;
+  color: #8b91a1;
+  background: white;
+  padding-inline: 9px;
+}
+.composer-caption {
+  height: 34px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 9px;
+  color: #a1a6b3;
+}
+.composer-caption span {
+  color: #a1a6b3;
+}
+.file-list:empty {
+  display: none;
+}
+.file-list {
+  padding-bottom: 8px;
+}

@@ -4,7 +4,7 @@ import {
   filterMatchingRows,
   jobMatchRows,
   summarizeMatchingRows,
-} from "../src/jobMatching.js";
+} from "../src/pages/job-analysis/matching.js";
 
 const rows = [
   { status: "已覆盖", requirement: "企业服务经验" },

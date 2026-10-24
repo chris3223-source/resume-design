@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { interviewPreparation } from "../src/interviewPreparation.js";
+import { interviewPreparation } from "../src/mocks/interview-preparation.js";
 
 test("keeps the demo introduction and all ten interview questions verbatim", () => {
   assert.equal(interviewPreparation.questions.length, 10);

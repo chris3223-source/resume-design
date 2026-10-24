@@ -4,7 +4,7 @@ import {
   resumeOptimizationStyles,
   resumeOptimizationRows,
   getResumeOptimizationRow,
-} from "../src/resumeOptimization.js";
+} from "../src/pages/job-analysis/optimization.js";
 
 test("keeps the four demo optimization styles and six comparison modules", () => {
   assert.deepEqual(resumeOptimizationStyles, [
@@ -46,8 +46,5 @@ test("selects the requested optimization module and falls back to the first", ()
     getResumeOptimizationRow("工作经历 - 盘点").module,
     "工作经历 - 盘点",
   );
-  assert.equal(
-    getResumeOptimizationRow("unknown module").module,
-    "职业摘要",
-  );
+  assert.equal(getResumeOptimizationRow("unknown module").module, "职业摘要");
 });

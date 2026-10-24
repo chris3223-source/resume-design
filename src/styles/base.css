@@ -1,0 +1,35 @@
+@import "antd/dist/reset.css";
+:root {
+  font-family: "IBM Plex Sans", "Microsoft YaHei", sans-serif;
+  color: #111213;
+  background: #ffffff;
+  font-synthesis: none;
+  color-scheme: only light;
+  --theme-primary: #1e4aff;
+  --theme-page: #f7f8fb;
+  --theme-hover: #f1f3f9;
+  --theme-selected: #eef2ff;
+  --theme-user-message: #f1f4ff;
+  --theme-subtle: #f4f6ff;
+  --theme-divider: #f0f0f0;
+  --theme-border: #e5e5e5;
+  --theme-border-strong: #e4e4e7;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+button {
+  cursor: pointer;
+}
+#root,
+.ant-app {
+  height: 100dvh;
+}

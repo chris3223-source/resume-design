@@ -1,0 +1,3 @@
+# pnpm 11 settings for this standalone prototype; no workspace packages.
+allowBuilds:
+  esbuild: true
