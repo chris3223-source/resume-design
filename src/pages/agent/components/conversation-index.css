@@ -1,0 +1,114 @@
+.conversation-scroll-area {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.conversation-scroll-area > .chat-scroll {
+  min-width: 0;
+}
+.conversation-index {
+  position: absolute;
+  left: 1px;
+  top: 16px;
+  bottom: 16px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  z-index: 3;
+  pointer-events: none;
+}
+.conversation-index-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: min(100%, 288px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  pointer-events: auto;
+}
+.conversation-index-rail::-webkit-scrollbar {
+  display: none;
+}
+.conversation-index-rail button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.conversation-index-rail button > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #cdd2df;
+  transition:
+    transform 200ms ease-out,
+    background-color 200ms ease-out;
+}
+.conversation-index-rail button:hover > span,
+.conversation-index-rail button:focus-visible > span {
+  background: #5b6172;
+}
+.conversation-index-rail button[aria-current="location"] > span {
+  background: var(--theme-primary);
+}
+.conversation-index-rail button:focus-visible {
+  outline: 1px solid #aebeff;
+  outline-offset: 1px;
+}
+.conversation-index-tooltip {
+  max-width: 320px;
+}
+.conversation-index-tooltip .ant-tooltip-container {
+  padding: 12px 14px;
+  color: #111213;
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 3px 12px #1112130a;
+  border-radius: 8px;
+}
+.conversation-index-preview strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.conversation-index-preview p {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 6px 0 0;
+  color: #5b6172;
+  font-size: 11px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+@media (max-width: 1100px) {
+  .conversation-scroll-area > .chat-scroll {
+    padding-left: 26px;
+  }
+}
+@media (max-width: 700px) {
+  .conversation-index {
+    display: none;
+  }
+  .conversation-scroll-area > .chat-scroll {
+    padding-left: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .conversation-index-rail button > span {
+    transition: none;
+  }
+}

@@ -1,7 +1,7 @@
 import { resumePreferenceDefaults } from "../../../mocks/resumes.js";
 import React from "react";
 
-import { Button, Tag, Form, Select, Radio } from "antd";
+import { Button, Form, Select, Radio } from "antd";
 
 export function Preferences({ notify }) {
   return (
@@ -64,18 +64,6 @@ export function Preferences({ notify }) {
             保存偏好
           </Button>
         </Form>
-      </div>
-      <div className="form-card">
-        <h3>
-          <span />
-          求职记忆
-        </h3>
-        <p className="muted">
-          你主动提供的信息，可用于后续简历优化与面试准备。
-        </p>
-        <Tag>目标：前端开发</Tag>
-        <Tag>应届毕业生</Tag>
-        <p className="demo-note">演示数据 · 不会上传或持久保存</p>
       </div>
     </div>
   );

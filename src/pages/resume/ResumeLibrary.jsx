@@ -5,13 +5,13 @@ import {
   PlusOutlined,
   UploadOutlined,
   EditOutlined,
-  DownloadOutlined,
-  CloseOutlined,
 } from "../../components/icons.js";
 import { EyeOutlined, CopyOutlined, DeleteOutlined } from "@ant-design/icons";
 import "./resume-library.css";
 
 import { ResumeLibraryEmpty } from "./ResumeLibraryEmpty.jsx";
+import { ResumeImportModal } from "./modals/ResumeImportModal.jsx";
+import { useResumeImportFlow } from "./useResumeImportFlow.js";
 
 export function ResumeLibrary({
   items,
@@ -25,6 +25,10 @@ export function ResumeLibrary({
   const [emptyPreview, setEmptyPreview] = useState(false);
   const isEmpty = emptyPreview || items.length === 0;
   const [dialog, setDialog] = useState(null);
+  const importFlow = useResumeImportFlow((doc) => {
+    onItemsChange([doc, ...items]);
+    setEmptyPreview(false);
+  });
   function openNew() {
     setDialog({ type: "new" });
   }
@@ -82,7 +86,7 @@ export function ResumeLibrary({
                 <Button
                   icon={<UploadOutlined />}
                   onClick={() => {
-                    setDialog({ type: "upload" });
+                    importFlow.show();
                   }}
                 >
                   导入简历 <Tag>AI</Tag>
@@ -194,31 +198,14 @@ export function ResumeLibrary({
           <ResumeLibraryEmpty
             onAiCreate={onAiCreate}
             onImport={() => {
-              setDialog({ type: "upload" });
+              importFlow.show();
             }}
             onBlank={openNew}
           />
         )}
       </div>
       <Modal
-        title={
-          dialog?.type === "rename" ? (
-            "重命名简历"
-          ) : dialog?.type === "upload" ? (
-            <span className="import-modal-title">
-              <span>
-                <DownloadOutlined />
-              </span>
-              导入简历
-            </span>
-          ) : (
-            "新建简历"
-          )
-        }
-        className={
-          dialog?.type === "upload" ? "resume-import-modal" : undefined
-        }
-        closeIcon={dialog?.type === "upload" ? <CloseOutlined /> : undefined}
+        title={dialog?.type === "rename" ? "重命名简历" : "新建简历"}
         open={!!dialog}
         onCancel={() => setDialog(null)}
         footer={null}
@@ -226,6 +213,7 @@ export function ResumeLibrary({
       >
         <ResumeLibraryModalContent dialog={dialog} finish={finish} />
       </Modal>
+      <ResumeImportModal flow={importFlow} onEdit={onEdit} />
     </div>
   );
 }

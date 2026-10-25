@@ -3,6 +3,7 @@
   .sidebar,
   .topbar,
   .chat-pane,
+  .interview-left,
   .ant-tabs-nav,
   .resume-toolbar,
   .paper-caption {
@@ -13,6 +14,8 @@
   .split-area,
   .ant-splitter,
   .ant-splitter-panel,
+  .interview-layout,
+  .interview-resume:not([hidden]),
   .workspace,
   .ant-tabs,
   .ant-tabs-content-holder,

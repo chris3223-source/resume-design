@@ -184,10 +184,73 @@
   border: 0;
   margin: 0;
 }
+.sidebar-toggle-button.ant-btn {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #5b6172;
+  background: transparent;
+  border-radius: 6px;
+}
+.chat-header > .ant-btn.sidebar-toggle-button {
+  font-size: 14px;
+  background: transparent;
+}
+.sidebar-toggle-button.ant-btn:hover {
+  color: var(--theme-primary);
+  background: var(--theme-hover);
+}
 .split-area {
   flex: 1;
   min-height: 0;
 }
 .ant-splitter-panel {
   overflow: hidden !important;
+}
+@media (min-width: 701px) {
+  .sidebar-collapsed .sidebar {
+    width: 64px;
+    padding-inline: 7px;
+  }
+  .sidebar-collapsed .brand {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+  .sidebar-collapsed .brand strong {
+    display: none;
+  }
+  .sidebar-collapsed .brand > .ant-btn {
+    display: none;
+  }
+  .sidebar-collapsed .nav-item {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+  .sidebar-collapsed .nav-item > span:not(.anticon) {
+    display: none;
+  }
+  .sidebar-collapsed .history-title,
+  .sidebar-collapsed .sidebar .ant-conversations {
+    display: none;
+  }
+  .sidebar-collapsed .sidebar-footer {
+    padding-inline: 0;
+  }
+  .sidebar-collapsed .account {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .sidebar-collapsed .account > div,
+  .sidebar-collapsed .prototype-label,
+  .sidebar-collapsed .copyright {
+    display: none;
+  }
+  .sidebar-collapsed .account > .ant-btn {
+    margin-left: 0;
+    padding-inline: 4px;
+  }
 }

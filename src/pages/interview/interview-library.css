@@ -1,0 +1,205 @@
+.interview-library-scroll {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--theme-page);
+  padding: 25px 24px 32px;
+}
+.interview-library-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.interview-library-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-bottom: 25px;
+}
+.interview-library-heading > .ant-btn {
+  height: 36px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 12px;
+}
+.interview-library-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.interview-library-stats article {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--theme-border);
+  border-radius: 9px;
+}
+.interview-stat-icon {
+  width: 37px;
+  height: 37px;
+  border-radius: 50%;
+  background: #f3f5fa;
+  display: grid;
+  place-items: center;
+  color: #71788b;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.interview-library-stats article > div {
+  display: grid;
+  gap: 4px;
+}
+.interview-library-stats article > div > span {
+  font-size: 11px;
+  color: #71788b;
+}
+.interview-library-stats strong {
+  color: #111213;
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.interview-library-filters {
+  border: 1px solid var(--theme-border);
+  border-radius: 9px;
+  padding: 12px;
+  background: #fff;
+  margin-bottom: 12px;
+}
+.interview-library-filters .ant-input-affix-wrapper {
+  height: 34px;
+  font-size: 12px;
+  box-shadow: none;
+}
+.interview-library-filters .ant-input-prefix {
+  color: #8b91a1;
+  margin-right: 7px;
+}
+.interview-library-filters > div:last-child {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+.interview-library-filters .ant-select {
+  width: 140px;
+  font-size: 12px;
+}
+.interview-library-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 260px;
+  padding: 36px 20px;
+  text-align: center;
+  border: 1px solid var(--theme-border);
+  border-radius: 9px;
+  background: #fff;
+}
+.interview-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  background: #eef2ff;
+  border-radius: 50%;
+  color: var(--theme-primary);
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.interview-library-empty h2 {
+  color: #111213;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 0 5px;
+}
+.interview-library-empty p {
+  color: #71788b;
+  font-size: 12px;
+  margin: 0 0 16px;
+}
+.interview-library-empty .ant-btn {
+  font-size: 12px;
+  box-shadow: none;
+}
+.interview-library-note {
+  text-align: center;
+  color: #9299a8;
+  font-size: 10px;
+  margin: 16px 0 0;
+  line-height: 1.7;
+}
+.interview-library-records {
+  display: grid;
+  gap: 12px;
+}
+.interview-record {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--theme-border);
+  border-radius: 9px;
+  background: #fff;
+}
+.interview-record-icon {
+  color: var(--theme-primary);
+  font-size: 19px;
+}
+.interview-record > div {
+  flex: 1;
+  min-width: 0;
+}
+.interview-record h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #111213;
+  margin: 0 0 8px;
+}
+.interview-record .ant-tag {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 400;
+}
+.interview-record p {
+  color: #5b6172;
+  font-size: 12px;
+  margin: 0 0 6px;
+}
+.interview-record small {
+  color: #8b91a1;
+  font-size: 10px;
+}
+.interview-record > .ant-btn {
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .interview-library-scroll {
+    padding: 18px 12px;
+  }
+  .interview-library-heading > .ant-btn {
+    flex-shrink: 0;
+  }
+  .interview-library-stats {
+    gap: 8px;
+  }
+  .interview-library-stats article {
+    padding: 12px 8px;
+    gap: 7px;
+  }
+  .interview-stat-icon {
+    display: none;
+  }
+  .interview-record {
+    flex-wrap: wrap;
+  }
+  .interview-record > .ant-btn {
+    margin-left: 32px;
+  }
+}

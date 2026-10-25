@@ -6,6 +6,7 @@ export const exampleResumes = [
     date: "2026/10/22",
     stage: "应届生",
     blank: false,
+    templateId: "blue",
   },
   {
     id: "resume-2",
@@ -13,6 +14,7 @@ export const exampleResumes = [
     date: "2026/10/20",
     stage: "应届生",
     blank: false,
+    templateId: "blue",
   },
   {
     id: "resume-3",
@@ -20,6 +22,7 @@ export const exampleResumes = [
     date: "2026/10/08",
     stage: "应届生",
     blank: false,
+    templateId: "blue",
   },
   {
     id: "resume-4",
@@ -27,6 +30,7 @@ export const exampleResumes = [
     date: "2026/09/25",
     stage: "资深",
     blank: false,
+    templateId: "blue",
   },
 ];
 

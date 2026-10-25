@@ -1,38 +1,26 @@
-import React from "react";
+import React, { useRef } from "react";
+import { ConversationIndex } from "./components/ConversationIndex.jsx";
+import { Workspace } from "../../components/Workspace.jsx";
+import { ResumePicker } from "../../components/ResumePicker.jsx";
+import { ResumeTemplatePicker } from "./components/ResumeTemplatePicker.jsx";
+import { SidebarToggleButton } from "../../components/SidebarToggleButton.jsx";
 
 import { ResumeEditor } from "../resume/ResumeEditor.jsx";
 
-import {
-  Button,
-  Dropdown,
-  Avatar,
-  Tag,
-  Tabs,
-  Splitter,
-  Tooltip,
-  Upload,
-} from "antd";
+import { Button, Avatar, Tag, Splitter, Tooltip, Upload } from "antd";
 import Bubble from "@ant-design/x/es/bubble/index.js";
 import Sender from "@ant-design/x/es/sender/index.js";
 
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   EditOutlined,
   FileTextOutlined,
   AimOutlined,
   UserOutlined,
-  CloseOutlined,
   ArrowRightOutlined,
   ThunderboltOutlined,
   ArrowLeftOutlined,
-  CheckOutlined,
 } from "../../components/icons.js";
-import {
-  PaperClipOutlined,
-  ExpandOutlined,
-  CompressOutlined,
-} from "@ant-design/icons";
+import { PaperClipOutlined } from "@ant-design/icons";
 
 import { roles } from "../../mocks/agent.jsx";
 const labels = {
@@ -47,7 +35,7 @@ export function AgentPage({
   full,
   setFull,
   sidebar,
-  setSidebar,
+  onExpandSidebar,
   sessions,
   session,
   newChat,
@@ -59,6 +47,9 @@ export function AgentPage({
   open,
   editing,
   setEditing,
+  templateSelecting,
+  setTemplateSelecting,
+  onTemplateSelect,
   updateResume,
   histories,
   send,
@@ -74,21 +65,24 @@ export function AgentPage({
   content,
   openJobAnalysisInChat,
 }) {
+  const scrollRef = useRef(null);
+  const messages = histories[session] || [];
   return (
     <Splitter>
       <Splitter.Panel
         defaultSize="48%"
-        min={300}
+        min={360}
+        resizable
         style={{ display: full ? "none" : undefined }}
       >
         <div className="chat-pane">
-          <div className="chat-header agent-conversation-header">
-            <Button
-              aria-label={sidebar ? "收起侧栏" : "展开侧栏"}
-              type="text"
-              size="small"
-              icon={sidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-              onClick={() => setSidebar((p) => !p)}
+          <div
+            className="chat-header agent-conversation-header"
+            style={{ display: templateSelecting ? "none" : undefined }}
+          >
+            <SidebarToggleButton
+              expanded={sidebar}
+              onExpand={onExpandSidebar}
             />
             <div className="chat-title">
               <Button
@@ -102,53 +96,30 @@ export function AgentPage({
                 {sessions.find((s) => s.key === session)?.label || "新会话"}
               </span>
             </div>
-            <Dropdown
-              trigger={["click"]}
-              placement="bottomRight"
+            <ResumePicker
+              items={resumeItems}
+              selectedId={currentResume.id}
               open={resumeMenuOpen}
               onOpenChange={setResumeMenuOpen}
-              popupRender={() => (
-                <div className="agent-resume-picker">
-                  <strong>我的简历</strong>
-                  <div className="agent-resume-picker-list">
-                    {resumeItems.map((item) => (
-                      <button
-                        className={`agent-resume-picker-item ${item.id === currentResume.id ? "selected" : ""}`}
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedResume(item);
-                          setResumeMenuOpen(false);
-                          open("resume");
-                        }}
-                      >
-                        <FileTextOutlined />
-                        <span>
-                          <span className="agent-resume-picker-title">
-                            {item.title}
-                          </span>
-                          <small>{item.date} · 最近更新</small>
-                        </span>
-                        {item.id === currentResume.id && <CheckOutlined />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            >
-              <Button
-                size="small"
-                shape="round"
-                icon={<FileTextOutlined />}
-                aria-label="选择简历"
-              >
-                我的简历
-              </Button>
-            </Dropdown>
+              onSelect={(item) => {
+                setSelectedResume(item);
+                open("resume");
+              }}
+            />
           </div>
+          {templateSelecting && (
+            <ResumeTemplatePicker
+              doc={currentResume}
+              selectedTemplateId={currentResume.templateId || "blue"}
+              onSelect={onTemplateSelect}
+              onBack={() => setTemplateSelecting(false)}
+            />
+          )}
           <div
             className="agent-editor-pane"
-            style={{ display: editing ? undefined : "none" }}
+            style={{
+              display: editing && !templateSelecting ? undefined : "none",
+            }}
           >
             <div className="agent-edit-heading">
               <strong>编辑简历</strong>
@@ -169,56 +140,73 @@ export function AgentPage({
           </div>
           <div
             className="chat-conversation"
-            style={{ display: editing ? "none" : undefined }}
+            style={{
+              display: editing || templateSelecting ? "none" : undefined,
+            }}
           >
-            <div className="chat-scroll">
-              {(histories[session] || []).length ? (
-                <>
-                  <div className="date-label">今天</div>
-                  <Bubble.List items={histories[session]} role={roles} />
-                  <div className="chat-next">
-                    <button onClick={() => send("帮我优化项目经历")}>
-                      优化项目经历 <ArrowRightOutlined />
+            <div className="conversation-scroll-area">
+              <div className="chat-scroll" ref={scrollRef}>
+                {(histories[session] || []).length ? (
+                  <>
+                    <div className="date-label">今天</div>
+                    <Bubble.List
+                      items={messages.map((message) => ({
+                        ...message,
+                        "data-conversation-key": String(message.key),
+                      }))}
+                      role={roles}
+                    />
+                    <div className="chat-next">
+                      <button onClick={() => send("帮我优化项目经历")}>
+                        优化项目经历 <ArrowRightOutlined />
+                      </button>
+                      <button onClick={() => open("preferences")}>
+                        完善求职偏好 <ArrowRightOutlined />
+                      </button>
+                    </div>
+                    <button
+                      className="manual-edit-link"
+                      onClick={() => editResume(currentResume)}
+                    >
+                      <EditOutlined />
+                      手动编辑简历
                     </button>
-                    <button onClick={() => open("preferences")}>
-                      完善求职偏好 <ArrowRightOutlined />
+                  </>
+                ) : (
+                  <div className="empty-chat">
+                    <Avatar
+                      className="ai-avatar"
+                      size={48}
+                      icon={<ThunderboltOutlined />}
+                    />
+                    <h2>一起准备你的下一份机会</h2>
+                    <p>从一份好简历开始，让你的经历被看见。</p>
+                    {[
+                      "帮我从零创建一份简历",
+                      "帮我优化项目经历",
+                      "准备一场前端技术面试",
+                    ].map((t) => (
+                      <Button key={t} onClick={() => send(t)}>
+                        {t}
+                        <ArrowRightOutlined />
+                      </Button>
+                    ))}
+                    <button
+                      className="manual-edit-link"
+                      onClick={() => editResume(currentResume)}
+                    >
+                      <EditOutlined />
+                      我想手动编辑简历
                     </button>
                   </div>
-                  <button
-                    className="manual-edit-link"
-                    onClick={() => editResume(currentResume)}
-                  >
-                    <EditOutlined />
-                    手动编辑简历
-                  </button>
-                </>
-              ) : (
-                <div className="empty-chat">
-                  <Avatar
-                    className="ai-avatar"
-                    size={48}
-                    icon={<ThunderboltOutlined />}
-                  />
-                  <h2>一起准备你的下一份机会</h2>
-                  <p>从一份好简历开始，让你的经历被看见。</p>
-                  {[
-                    "帮我从零创建一份简历",
-                    "帮我优化项目经历",
-                    "准备一场前端技术面试",
-                  ].map((t) => (
-                    <Button key={t} onClick={() => send(t)}>
-                      {t}
-                      <ArrowRightOutlined />
-                    </Button>
-                  ))}
-                  <button
-                    className="manual-edit-link"
-                    onClick={() => editResume(currentResume)}
-                  >
-                    <EditOutlined />
-                    我想手动编辑简历
-                  </button>
-                </div>
+                )}
+              </div>
+              {!editing && !full && (
+                <ConversationIndex
+                  key={session}
+                  messages={messages}
+                  scrollRef={scrollRef}
+                />
               )}
             </div>
             <div className="composer">
@@ -302,60 +290,39 @@ export function AgentPage({
         </div>
       </Splitter.Panel>
       {panels.length > 0 && (
-        <Splitter.Panel min={300}>
-          <div className="workspace">
-            <Tabs
-              type="editable-card"
-              hideAdd
-              activeKey={active}
-              onChange={setActive}
-              onEdit={(key, action) => {
-                if (action === "remove") {
-                  const next = panels.filter((p) => p !== key);
-                  setPanels(next);
-                  if (active === key) setActive(next.at(-1));
-                  setFull(false);
-                }
-              }}
-              tabBarExtraContent={
-                <div className="workspace-actions">
-                  <Button
-                    size="small"
-                    aria-label="全屏工作区"
-                    type="text"
-                    icon={full ? <CompressOutlined /> : <ExpandOutlined />}
-                    onClick={() => setFull((p) => !p)}
-                  />
-                  <Button
-                    size="small"
-                    aria-label="关闭工作区"
-                    type="text"
-                    icon={<CloseOutlined />}
-                    onClick={() => {
-                      setPanels([]);
-                      setFull(false);
-                    }}
-                  />
-                </div>
-              }
-              items={panels.map((key) => ({
-                key,
-                label: (
-                  <span>
-                    {key === "resume" ? (
-                      <FileTextOutlined />
-                    ) : key === "preferences" ? (
-                      <AimOutlined />
-                    ) : (
-                      <UserOutlined />
-                    )}{" "}
-                    {key === "resume" ? currentResume.title : labels[key]}
-                  </span>
-                ),
-                children: content(key),
-              }))}
-            />
-          </div>
+        <Splitter.Panel defaultSize="52%" min={420} resizable>
+          <Workspace
+            activeKey={active}
+            onChange={setActive}
+            onRemove={(key) => {
+              const next = panels.filter((p) => p !== key);
+              setPanels(next);
+              if (active === key) setActive(next.at(-1));
+              setFull(false);
+            }}
+            full={full}
+            onToggleFull={() => setFull((p) => !p)}
+            onClose={() => {
+              setPanels([]);
+              setFull(false);
+            }}
+            items={panels.map((key) => ({
+              key,
+              label: (
+                <span>
+                  {key === "resume" ? (
+                    <FileTextOutlined />
+                  ) : key === "preferences" ? (
+                    <AimOutlined />
+                  ) : (
+                    <UserOutlined />
+                  )}{" "}
+                  {key === "resume" ? currentResume.title : labels[key]}
+                </span>
+              ),
+              children: content(key),
+            }))}
+          />
         </Splitter.Panel>
       )}
     </Splitter>

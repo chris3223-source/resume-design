@@ -25,9 +25,9 @@ function Lines({ text }) {
     </ul>
   );
 }
-function Section({ title, children }) {
+function Section({ title, children, className = "" }) {
   return (
-    <section className="resume-section">
+    <section className={`resume-section ${className}`}>
       <h3>{title}</h3>
       {children}
     </section>
@@ -51,12 +51,12 @@ export function ResumeDocument({ doc }) {
         <p className="muted">空白简历 · 点击手动编辑，开始填写你的经历。</p>
       )}
       {d.summary && (
-        <Section title="个人简介">
+        <Section title="个人简介" className="resume-section-summary">
           <p>{d.summary}</p>
         </Section>
       )}
       {(d.school || d.major) && (
-        <Section title="教育经历">
+        <Section title="教育经历" className="resume-section-education">
           <div className="resume-row">
             <strong>{d.school}</strong>
             <span>{d.educationDates}</span>
@@ -66,7 +66,7 @@ export function ResumeDocument({ doc }) {
         </Section>
       )}
       {(d.projectName || d.secondName) && (
-        <Section title="项目经历">
+        <Section title="项目经历" className="resume-section-projects">
           {d.projectName && (
             <>
               <div className="resume-row">
@@ -91,12 +91,12 @@ export function ResumeDocument({ doc }) {
         </Section>
       )}
       {d.skills && (
-        <Section title="专业技能">
+        <Section title="专业技能" className="resume-section-skills">
           <Lines text={d.skills} />
         </Section>
       )}
       {d.extra && (
-        <Section title="补充信息">
+        <Section title="补充信息" className="resume-section-extra">
           <p>{d.extra}</p>
         </Section>
       )}

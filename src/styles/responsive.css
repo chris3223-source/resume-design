@@ -145,9 +145,10 @@
     left: 0;
     width: 248px;
     box-shadow: 8px 0 30px #1112130f;
+    display: none;
   }
   .sidebar-backdrop {
-    display: block;
+    display: none;
     position: fixed;
     inset: 0;
     background: #11121330;
@@ -155,6 +156,10 @@
   }
   .sidebar-open .sidebar {
     z-index: 20;
+    display: flex;
+  }
+  .sidebar-open .sidebar-backdrop {
+    display: block;
   }
   .topbar {
     padding: 0 10px;

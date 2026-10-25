@@ -41,13 +41,6 @@ export function AccountSettings({ account, onAccountChange, onAuth }) {
     : "未绑定";
   return (
     <div className="settings-scroll">
-      <div className="settings-title">
-        <div>
-          <h1>账户设置</h1>
-          <p>管理你的账号信息和个人偏好设置</p>
-        </div>
-        <Tag>演示账户</Tag>
-      </div>
       <div className="settings-content">
         <section className="settings-card">
           <div className="settings-card-heading">

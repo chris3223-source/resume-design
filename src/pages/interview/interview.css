@@ -4,6 +4,18 @@
   height: 100%;
   overflow: hidden;
 }
+.interview-layout.interview-resume-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+.interview-layout.interview-preview-full {
+  grid-template-columns: minmax(0, 1fr);
+}
+.interview-preview-full .interview-left {
+  display: none;
+}
+.interview-resume[hidden] {
+  display: none;
+}
 .interview-left {
   display: flex;
   flex-direction: column;
@@ -348,45 +360,7 @@
 .interview-resume {
   min-width: 0;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-  height: calc(100% - 16px);
-  margin: 8px 8px 8px 0;
-  border: 1px solid var(--theme-border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.interview-resume-header {
-  height: 57px;
-  min-height: 57px;
-  border-bottom: 1px solid var(--theme-border-strong);
-  background: #ffffff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 19px;
-  font-size: 11px;
-  color: #5b6172;
-  gap: 8px;
-}
-.interview-resume-header .ant-tag {
-  margin: 0;
-  font-size: 9px;
-  border: 0;
-  background: #ffffff;
-  color: #8b91a1;
-}
-.interview-resume > .resume-wrap {
-  height: auto;
-  flex: 1;
-  min-height: 0;
-}
-.interview-resume .resume-toolbar {
-  display: none;
-}
-.interview-resume .paper-scroll {
-  padding: 22px 23px;
+  height: 100%;
 }
 .interview-status {
   display: flex;
@@ -578,6 +552,13 @@
   color: #8b91a1;
   margin: 0;
 }
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
 .review-tips {
   display: flex;
   gap: 10px;
@@ -617,15 +598,6 @@
   }
   .interview-setup {
     padding: 25px 23px;
-  }
-  .interview-resume {
-    margin-right: 8px;
-  }
-  .interview-resume .paper-scroll {
-    padding: 18px 14px;
-  }
-  .interview-resume-header {
-    padding-inline: 14px;
   }
   .interview-context {
     margin-inline: 17px;

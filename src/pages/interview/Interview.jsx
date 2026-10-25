@@ -1,5 +1,8 @@
 import { InterviewSettingsContent } from "./modals/InterviewSettingsContent.jsx";
-import React, { useEffect, useRef, useState } from "react";
+import { Workspace } from "../../components/Workspace.jsx";
+import { ResumePicker } from "../../components/ResumePicker.jsx";
+import { SidebarToggleButton } from "../../components/SidebarToggleButton.jsx";
+import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Avatar, Button, Input, Select, Tag, Progress, Modal } from "antd";
 import {
   SoundOutlined,
@@ -9,10 +12,9 @@ import {
   CheckCircleOutlined,
   BulbOutlined,
   CodeOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   EditOutlined,
   SettingOutlined,
+  ArrowLeftOutlined,
 } from "../../components/icons.js";
 import {
   PhoneOutlined,
@@ -63,33 +65,110 @@ const interviewRoles = {
 };
 
 export function Interview({
+  ref,
   resume,
-  onToggleSidebar,
+  onExpandSidebar,
   sidebarOpen,
   resumes = [],
   selectedResumeId,
   onResumeChange,
+  onBack,
+  onFinish,
+  initialRecord,
+  workspaceFull = false,
+  onWorkspaceFullChange,
 }) {
-  const [stage, setStage] = useState("setup");
-  const [job, setJob] = useState("前端开发工程师");
-  const [resumeId, setResumeId] = useState(selectedResumeId || resumes[0]?.id);
-  const [kind, setKind] = useState("综合面");
-  const [mic, setMic] = useState(true);
+  const [stage, setStage] = useState(initialRecord ? "review" : "setup");
+  const [job, setJob] = useState(initialRecord?.job || "前端开发工程师");
+  const [resumeId, setResumeId] = useState(
+    initialRecord?.resume?.id || selectedResumeId || resumes[0]?.id,
+  );
+  const [kind, setKind] = useState(initialRecord?.kind || "综合面");
+  const [mic, setMic] = useState(initialRecord?.mode !== "text");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [interviewer, setInterviewer] = useState("女面试官");
   const [micTested, setMicTested] = useState(false);
   const [speakerTested, setSpeakerTested] = useState(false);
-  const [mode, setMode] = useState("voice");
+  const [mode, setMode] = useState(initialRecord?.mode || "voice");
   const [muted, setMuted] = useState(false);
   const [answer, setAnswer] = useState("");
-  const [answers, setAnswers] = useState([]);
-  const [messages, setMessages] = useState([]);
+  const [answers, setAnswers] = useState(initialRecord?.answers || []);
+  const [messages, setMessages] = useState(initialRecord?.messages || []);
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState("speaking");
   const [caption, setCaption] = useState("");
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsed, setElapsed] = useState(initialRecord?.elapsed || 0);
   const [speaker, setSpeaker] = useState(true);
+  const [resumeVisible, setResumeVisible] = useState(true);
+  const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
+  const resumeToggleRef = useRef(null);
+  useEffect(() => {
+    if (!resumeVisible) resumeToggleRef.current?.focus();
+  }, [resumeVisible]);
   const scrollRef = useRef(null);
+  const runId = useRef(initialRecord?.id || null);
+  const savedId = useRef(initialRecord?.id || null);
+  const finishRef = useRef(onFinish);
+  useEffect(() => {
+    finishRef.current = onFinish;
+  }, [onFinish]);
+  function saveRecord(status) {
+    if (!runId.current || savedId.current === runId.current) return;
+    savedId.current = runId.current;
+    finishRef.current?.({
+      id: runId.current,
+      job,
+      kind,
+      mode,
+      elapsed,
+      answers,
+      messages,
+      status,
+      score: null,
+      createdAt: new Date().toLocaleString("zh-CN"),
+      resume:
+        initialRecord?.resume || resumes.find((item) => item.id === resumeId),
+    });
+  }
+  useEffect(() => {
+    if (stage === "review") saveRecord("ended");
+  }, [
+    stage,
+    job,
+    kind,
+    mode,
+    elapsed,
+    answers,
+    messages,
+    resumeId,
+    resumes,
+    initialRecord,
+  ]);
+  function requestLeave(next, preparing = false) {
+    if (stage !== "live") {
+      next?.();
+      return;
+    }
+    Modal.confirm({
+      title: preparing
+        ? "结束本次练习并重新准备？"
+        : "结束本次练习并返回记录？",
+      content: "本次练习将标记为已放弃，仅保留在当前演示会话中。",
+      okText: preparing ? "结束并重新准备" : "结束并返回",
+      cancelText: "继续面试",
+      onOk: () => {
+        saveRecord("abandoned");
+        next?.();
+      },
+    });
+  }
+  function returnToRecords() {
+    requestLeave(onBack);
+  }
+  function prepareAgain() {
+    requestLeave(() => setStage("setup"), true);
+  }
+  useImperativeHandle(ref, () => ({ returnToRecords }));
   useEffect(() => {
     if (stage !== "live") return;
     const id = setInterval(() => setElapsed((n) => n + 1), 1000);
@@ -150,6 +229,7 @@ export function Interview({
     };
   }, [stage, mode, muted, index, phase]);
   function start() {
+    runId.current = `interview-${Date.now()}`;
     setStage("live");
     setMode(mic ? "voice" : "text");
     setMuted(false);
@@ -197,20 +277,25 @@ export function Interview({
     stage === "setup"
       ? "准备一场前端技术面试"
       : stage === "live"
-        ? "前端开发工程师 · 模拟面试"
-        : "面试复盘 · 前端开发工程师";
+        ? `${job} · 模拟面试`
+        : `面试复盘 · ${job}`;
   return (
     <div
-      className={`interview-layout ${isLive ? "interview-in-progress" : ""}`}
+      className={`interview-layout ${isLive ? "interview-in-progress" : ""} ${resumeVisible ? "" : "interview-resume-hidden"} ${workspaceFull ? "interview-preview-full" : ""}`}
     >
       <section className="interview-left">
         <header className="chat-header agent-conversation-header interview-session-header">
+          <SidebarToggleButton
+            expanded={sidebarOpen}
+            onExpand={onExpandSidebar}
+          />
           <Button
-            aria-label={sidebarOpen ? "收起侧栏" : "展开侧栏"}
             type="text"
             size="small"
-            icon={sidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-            onClick={onToggleSidebar}
+            aria-label="返回面试记录"
+            title="返回面试记录"
+            icon={<ArrowLeftOutlined />}
+            onClick={returnToRecords}
           />
           <div className="chat-title">
             <Button
@@ -218,7 +303,7 @@ export function Interview({
               type="text"
               size="small"
               icon={<EditOutlined />}
-              onClick={() => setStage("setup")}
+              onClick={prepareAgain}
             />
             <span>{sessionTitle}</span>
             {isLive && (
@@ -238,6 +323,18 @@ export function Interview({
               </small>
             )}
           </div>
+          <ResumePicker
+            items={resumes}
+            selectedId={resumeId}
+            open={resumeMenuOpen}
+            onOpenChange={setResumeMenuOpen}
+            buttonRef={resumeToggleRef}
+            onSelect={(item) => {
+              setResumeId(item.id);
+              if (item.id !== resumeId) onResumeChange?.(item.id);
+              setResumeVisible(true);
+            }}
+          />
         </header>
         {stage === "setup" ? (
           <div className="interview-setup-scroll">
@@ -521,23 +618,52 @@ export function Interview({
                 <small>通用练习建议 · 非 AI 评分或个人能力判断</small>
               </div>
             </div>
-            <Button type="primary" icon={<ReloadOutlined />} onClick={start}>
-              再练一轮
-            </Button>
-            <Button type="text" onClick={() => setStage("setup")}>
-              返回面试准备
-            </Button>
+            <div className="review-actions">
+              <Button type="primary" icon={<ReloadOutlined />} onClick={start}>
+                再练一轮
+              </Button>
+              <Button type="text" onClick={() => setStage("setup")}>
+                返回面试准备
+              </Button>
+              <Button type="text" onClick={returnToRecords}>
+                返回面试记录
+              </Button>
+            </div>
           </div>
         )}
       </section>
-      <section className="interview-resume">
-        <div className="interview-resume-header">
-          <span>
-            <FileTextOutlined /> 前端开发工程师 · 简历
-          </span>
-          <Tag>面试参考 · 只读</Tag>
-        </div>
-        {resume}
+      <section
+        className="interview-resume"
+        id="interview-resume-preview"
+        hidden={!resumeVisible}
+      >
+        <Workspace
+          activeKey="resume"
+          full={workspaceFull}
+          onToggleFull={() => onWorkspaceFullChange?.(!workspaceFull)}
+          onClose={() => {
+            setResumeVisible(false);
+            onWorkspaceFullChange?.(false);
+          }}
+          onRemove={() => {
+            setResumeVisible(false);
+            onWorkspaceFullChange?.(false);
+          }}
+          items={[
+            {
+              key: "resume",
+              label: (
+                <span>
+                  <FileTextOutlined />{" "}
+                  {initialRecord?.resume?.title ||
+                    resumes.find((item) => item.id === resumeId)?.title ||
+                    "简历"}
+                </span>
+              ),
+              children: resume,
+            },
+          ]}
+        />
       </section>
       <Modal
         title="面试设置"

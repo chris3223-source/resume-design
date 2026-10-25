@@ -1,12 +1,14 @@
 import { initialSessions } from "../mocks/agent.jsx";
 import { initialAccount } from "../mocks/account.js";
 import { JobAnalysisMessage } from "../pages/agent/components/JobAnalysisMessage.jsx";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ResumeLibrary } from "../pages/resume/ResumeLibrary.jsx";
 import { exampleResumes } from "../mocks/resumes.js";
 import { ResumePreviewPage } from "../pages/resume/ResumePreviewPage.jsx";
+import { SidebarToggleButton } from "../components/SidebarToggleButton.jsx";
 
 import { Interview } from "../pages/interview/Interview.jsx";
+import { InterviewLibrary } from "../pages/interview/InterviewLibrary.jsx";
 
 import { AccountSettings } from "../pages/account/AccountSettings.jsx";
 import { AuthPage } from "../pages/account/AuthPage.jsx";
@@ -36,15 +38,33 @@ import { initial } from "../mocks/agent.jsx";
 export function Application() {
   const { message } = AntApp.useApp();
   const [page, setPage] = useState("agent");
+  const [interviewRecords, setInterviewRecords] = useState([]);
+  const [selectedInterview, setSelectedInterview] = useState(null);
+  const [interviewKey, setInterviewKey] = useState(0);
+  const interviewNavigation = useRef(null);
+  function startInterview() {
+    setSelectedInterview(null);
+    setInterviewKey((key) => key + 1);
+    setFull(false);
+    setPage("interview-session");
+  }
   const [editing, setEditing] = useState(false);
+  const [templateSelecting, setTemplateSelecting] = useState(false);
   const [resumeItems, setResumeItems] = useState(exampleResumes);
   const [selectedResume, setSelectedResume] = useState(exampleResumes[0]);
   const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
   const currentResume =
     resumeItems.find((item) => item.id === selectedResume.id) || selectedResume;
+  function openTemplatePicker() {
+    setEditing(false);
+    setTemplateSelecting(true);
+    setFull(false);
+    setPage("agent");
+  }
   function editResume(doc) {
     setSelectedResume(doc);
     setEditing(true);
+    setTemplateSelecting(false);
     setFull(false);
     setPage("agent");
     open("resume");
@@ -54,6 +74,21 @@ export function Application() {
       items.map((item) =>
         item.id === doc.id ? { ...item, data, blank: false } : item,
       ),
+    );
+  }
+  function updateResumeTemplate(doc, templateId) {
+    setResumeItems((items) =>
+      items.map((item) =>
+        item.id === doc.id ? { ...item, templateId } : item,
+      ),
+    );
+    setSelectedResume((item) =>
+      item.id === doc.id ? { ...item, templateId } : item,
+    );
+    setSelectedInterview((record) =>
+      record?.resume?.id === doc.id
+        ? { ...record, resume: { ...record.resume, templateId } }
+        : record,
     );
   }
 
@@ -161,11 +196,10 @@ export function Application() {
   }
   function open(key) {
     if (key === "interview") {
-      setPage("interview");
-      setFull(false);
+      startInterview();
       return;
     }
-    setPanels((p) => (p.includes(key) ? p : [...p, key]));
+    setPanels([key]);
     setActive(key);
   }
   function newChat() {
@@ -217,6 +251,8 @@ export function Application() {
           key={currentResume.id}
           doc={currentResume}
           onEdit={() => editResume(currentResume)}
+          onTemplateChange={updateResumeTemplate}
+          onOpenTemplatePicker={openTemplatePicker}
         />
       );
     if (key === "preferences") return <Preferences notify={notify} />;
@@ -252,17 +288,19 @@ export function Application() {
   const topbar = (
     <header className="topbar">
       <div>
-        <Button
-          aria-label={sidebar ? "收起侧栏" : "展开侧栏"}
-          type="text"
-          icon={sidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-          onClick={() => setSidebar((p) => !p)}
+        <SidebarToggleButton
+          expanded={sidebar}
+          onExpand={() => setSidebar(true)}
         />
         <span className="topbar-title">
           {page === "jobs"
             ? "岗位分析报告"
             : page === "resumes"
               ? "我的简历"
+              : page === "interview"
+                ? "模拟面试"
+              : page === "settings"
+                ? "账户设置"
               : "求职准备，从这里开始"}
         </span>
       </div>
@@ -271,12 +309,10 @@ export function Application() {
   );
   return (
     <div
-      className={`app-shell ${sidebar ? "sidebar-open" : ""} ${full ? "workspace-full" : ""}`}
+      className={`app-shell ${sidebar ? "sidebar-open" : "sidebar-collapsed"} ${full ? "workspace-full" : ""}`}
     >
-      {sidebar && (
-        <>
-          <div className="sidebar-backdrop" onClick={() => setSidebar(false)} />
-          <aside className="sidebar">
+      <div className="sidebar-backdrop" onClick={() => setSidebar(false)} />
+      <aside className="sidebar">
             <div className="brand">
               <span className="brand-mark">
                 <ThunderboltOutlined />
@@ -284,23 +320,31 @@ export function Application() {
               <strong>简历工作台</strong>
               <Button
                 type="text"
-                aria-label="收起导航"
-                icon={<MenuFoldOutlined />}
-                onClick={() => setSidebar(false)}
+                aria-label={sidebar ? "收起导航" : "展开导航"}
+                title={sidebar ? "收起导航" : "展开导航"}
+                icon={sidebar ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+                onClick={() => setSidebar((isOpen) => !isOpen)}
               />
             </div>
             <nav>
               {nav.map(([key, icon, label]) => (
                 <button
                   key={key}
-                  className={`nav-item ${(page === "resumes" || page === "resume-preview" ? key === "resume" : page === "interview" ? key === "interview" : page === "jobs" ? key === "jobs" : page === "settings" ? false : key === "agent") ? "selected" : ""}`}
+                  title={label}
+                  aria-label={label}
+                  className={`nav-item ${(page === "resumes" || page === "resume-preview" ? key === "resume" : page === "interview" || page === "interview-session" ? key === "interview" : page === "jobs" ? key === "jobs" : page === "settings" ? false : key === "agent") ? "selected" : ""}`}
                   onClick={() => {
                     if (key === "agent") {
                       setEditing(false);
                       setFull(false);
                       setPage("agent");
                     } else if (key === "interview") {
-                      open(key);
+                      if (page === "interview-session") {
+                        interviewNavigation.current?.returnToRecords();
+                      } else {
+                        setFull(false);
+                        setPage("interview");
+                      }
                     } else if (key === "resume") {
                       setFull(false);
                       setPage("resumes");
@@ -389,16 +433,16 @@ export function Application() {
               </div>
               <small className="copyright">AI 求职简历工作台</small>
             </div>
-          </aside>
-        </>
-      )}
+      </aside>
       <main className="main-shell">
-        {page !== "agent" && page !== "interview" && topbar}
+        {page !== "agent" && page !== "interview-session" && topbar}
         <div className="split-area">
           {page === "resume-preview" ? (
             <ResumePreviewPage
               doc={currentResume}
-              renderResume={(doc) => <Resume doc={doc} />}
+              renderResume={(doc) => (
+                <Resume doc={doc} onTemplateChange={updateResumeTemplate} />
+              )}
               onBack={() => setPage("resumes")}
               onEdit={editResume}
             />
@@ -417,7 +461,9 @@ export function Application() {
               items={resumeItems}
               onItemsChange={setResumeItems}
               onEdit={editResume}
-              renderResume={(doc) => <Resume doc={doc} />}
+              renderResume={(doc) => (
+                <Resume doc={doc} onTemplateChange={updateResumeTemplate} />
+              )}
             />
           ) : page === "settings" ? (
             <AccountSettings
@@ -434,14 +480,45 @@ export function Application() {
               resumes={resumeItems}
             />
           ) : page === "interview" ? (
+            <InterviewLibrary
+              records={interviewRecords}
+              onStart={startInterview}
+              onReview={(record) => {
+                setSelectedInterview(record);
+                setInterviewKey((key) => key + 1);
+                setPage("interview-session");
+              }}
+            />
+          ) : page === "interview-session" ? (
             <Interview
-              resume={<Resume doc={currentResume} />}
-              onToggleSidebar={() => setSidebar((p) => !p)}
+              ref={interviewNavigation}
+              key={interviewKey}
+              initialRecord={selectedInterview}
+              workspaceFull={full}
+              onWorkspaceFullChange={setFull}
+              onBack={() => {
+                setFull(false);
+                setPage("interview");
+              }}
+              onFinish={(record) =>
+                setInterviewRecords((records) => [
+                  record,
+                  ...records.filter((item) => item.id !== record.id),
+                ])
+              }
+              resume={
+                <Resume
+                  doc={selectedInterview?.resume || currentResume}
+                  showToolbar={false}
+                />
+              }
+              onExpandSidebar={() => setSidebar(true)}
               sidebarOpen={sidebar}
               resumes={resumeItems}
               selectedResumeId={currentResume.id}
               onResumeChange={(id) => {
                 const selected = resumeItems.find((item) => item.id === id);
+                setSelectedInterview(null);
                 if (selected) setSelectedResume(selected);
               }}
             />
@@ -451,7 +528,7 @@ export function Application() {
               setFull={setFull}
               full={full}
               sidebar={sidebar}
-              setSidebar={setSidebar}
+              onExpandSidebar={() => setSidebar(true)}
               sessions={sessions}
               session={session}
               newChat={newChat}
@@ -463,6 +540,11 @@ export function Application() {
               open={open}
               editing={editing}
               setEditing={setEditing}
+              templateSelecting={templateSelecting}
+              setTemplateSelecting={setTemplateSelecting}
+              onTemplateSelect={(templateId) =>
+                updateResumeTemplate(currentResume, templateId)
+              }
               updateResume={updateResume}
               histories={histories}
               send={send}
